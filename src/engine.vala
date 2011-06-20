@@ -23,23 +23,11 @@ class GucharmapEngine : IBus.Engine {
     private int y = -1;
 
     // const values
-    private const uint PREEDIT_BGCOLOR = 0x00a0a0a0;
     private const int INITIAL_WIDTH = 320;
     private const int INITIAL_HEIGHT = 240;
 
-    private List<unichar> preedit = new List<unichar> ();
-
-    private static string concat_unichar_list (List<unichar> list) {
-        var text = new StringBuilder ();
-        foreach (unichar uc in list) {
-            text.append_unichar (uc);
-        }
-        return text.str;
-    }
-
     private void on_charmap_select (unichar uc) {
-        preedit.append (uc);
-        update_preedit_text ();
+		commit_text (new IBus.Text.from_string (uc.to_string ()));
     }
 
     public override void enable () {
@@ -77,51 +65,6 @@ class GucharmapEngine : IBus.Engine {
             this.window.move (x, y);
         this.x = x;
         this.y = y;
-    }
-
-    // override process_key_event to handle key events
-    public override bool process_key_event (uint keyval, uint keycode, uint state) {
-        // ignore release event
-        if ((IBus.ModifierType.RELEASE_MASK & state) != 0)
-            return false;
-
-        // ignore if text is empty
-        if (preedit == null)
-            return false;
-
-        // process return and space key event
-        if (keyval == IBus.Return || keyval == IBus.space) {
-            string text = concat_unichar_list (preedit);
-            commit_text (new IBus.Text.from_string (text));
-            preedit = null;
-        }
-        // process backspace
-        else if (keyval == IBus.BackSpace) {
-            preedit.delete_link (preedit.last ());
-        }
-        // process escape key event
-        else if (keyval == IBus.Escape) {
-            preedit = null;
-        }
-
-        // text has been updated
-        update_preedit_text ();
-
-        return true;
-    }
-
-    // update preedit text
-    private new void update_preedit_text () {
-        if (preedit == null) {
-            hide_preedit_text ();
-        }
-        else {
-            string text = concat_unichar_list (preedit);
-            var tmp = new IBus.Text.from_string(text);
-            tmp.append_attribute(IBus.AttrType.BACKGROUND, PREEDIT_BGCOLOR,
-                                 0, -1);
-            base.update_preedit_text(tmp, (uint)text.length, true);
-        }
     }
 
     public static void main (string[] args) {
