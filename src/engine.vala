@@ -46,7 +46,7 @@ class GucharmapEngine : IBus.Engine {
             this.charmap_window = new Gtk.Window (Gtk.WindowType.POPUP);
             this.charmap_window.set_size_request (INITIAL_WIDTH,
                                                   INITIAL_HEIGHT);
-            var charmap = new CharmapWindow ();
+            var charmap = new CharmapPanel ();
             charmap.select.connect (on_charmap_select);
             this.charmap_window.add (charmap);
         }

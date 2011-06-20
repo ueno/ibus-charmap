@@ -16,7 +16,7 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 // 02110-1301, USA.
 
-class CharmapWindow : Gtk.Box {
+class CharmapPanel : Gtk.Box {
     private Gucharmap.ChaptersView _chapters_view;
     private Gucharmap.Chartable _chartable;
 
@@ -41,7 +41,7 @@ class CharmapWindow : Gtk.Box {
             select (uc);
     }
 
-    public CharmapWindow () {
+    public CharmapPanel () {
         var paned = new Gtk.Paned (Gtk.Orientation.HORIZONTAL);
 
         // chapters
