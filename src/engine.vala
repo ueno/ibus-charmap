@@ -27,7 +27,7 @@ class GucharmapEngine : IBus.Engine {
     private const int INITIAL_HEIGHT = 240;
 
     private void on_charmap_select (unichar uc) {
-		commit_text (new IBus.Text.from_string (uc.to_string ()));
+        commit_text (new IBus.Text.from_string (uc.to_string ()));
     }
 
     public override void enable () {
