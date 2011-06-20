@@ -17,12 +17,10 @@
 // 02110-1301, USA.
 
 class GucharmapEngine : IBus.Engine {
-    private Gtk.Window window;
-    private CharmapWindow charmap;
+    private Gtk.Window charmap_window;
     private int x = -1;
     private int y = -1;
 
-    // const values
     private const int INITIAL_WIDTH = 320;
     private const int INITIAL_HEIGHT = 240;
 
@@ -31,38 +29,41 @@ class GucharmapEngine : IBus.Engine {
     }
 
     public override void enable () {
-        update_charmap ();
+        show_charmap_window ();
     }
 
     public override void focus_in () {
-        update_charmap ();
+        show_charmap_window ();
     }
 
     public override void focus_out () {
-        this.window.hide ();
+        if (this.charmap_window != null)
+            this.charmap_window.hide ();
     }
 
-    private void update_charmap () {
-        if (this.window == null) {
-            this.window = new Gtk.Window (Gtk.WindowType.TOPLEVEL);
-            this.window.set_keep_above (true);
-            this.window.set_accept_focus (false);
-            this.window.set_can_focus (false);
-            this.window.set_size_request (INITIAL_WIDTH, INITIAL_HEIGHT);
-            this.window.set_decorated (false);
-            this.charmap = new CharmapWindow ();
-            this.window.add (this.charmap);
-            this.charmap.select.connect (on_charmap_select);
+    private void show_charmap_window () {
+        if (this.charmap_window == null) {
+            this.charmap_window = new Gtk.Window (Gtk.WindowType.POPUP);
+            this.charmap_window.set_keep_above (true);
+            this.charmap_window.set_accept_focus (false);
+            this.charmap_window.set_can_focus (false);
+            this.charmap_window.set_size_request (INITIAL_WIDTH,
+                                                  INITIAL_HEIGHT);
+            this.charmap_window.set_decorated (false);
+            var charmap = new CharmapWindow ();
+            charmap.select.connect (on_charmap_select);
+            this.charmap_window.add (charmap);
         }
-        this.window.show_all ();
+
+        this.charmap_window.show_all ();
         if (this.x >= 0 && this.y >= 0)
-            this.window.move (this.x, this.y);
+            this.charmap_window.move (this.x, this.y);
     }
 
     public override void set_cursor_location (int x, int y, int w, int h) {
         y += h;
-        if (this.x != x || this.y != y)
-            this.window.move (x, y);
+        if ((this.x != x || this.y != y) && this.charmap_window != null)
+            this.charmap_window.move (x, y);
         this.x = x;
         this.y = y;
     }
