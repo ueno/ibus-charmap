@@ -44,12 +44,8 @@ class GucharmapEngine : IBus.Engine {
     private void show_charmap_window () {
         if (this.charmap_window == null) {
             this.charmap_window = new Gtk.Window (Gtk.WindowType.POPUP);
-            this.charmap_window.set_keep_above (true);
-            this.charmap_window.set_accept_focus (false);
-            this.charmap_window.set_can_focus (false);
             this.charmap_window.set_size_request (INITIAL_WIDTH,
                                                   INITIAL_HEIGHT);
-            this.charmap_window.set_decorated (false);
             var charmap = new CharmapWindow ();
             charmap.select.connect (on_charmap_select);
             this.charmap_window.add (charmap);
