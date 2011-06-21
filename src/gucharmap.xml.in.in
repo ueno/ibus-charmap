@@ -13,12 +13,12 @@
 	<engines>
 		<engine>
 			<name>gucharmap</name>
-			<language></language>
+			<language>other</language>
 			<license>GPL</license>
 			<author>Daiki Ueno &lt;ueno@unixuser.org&gt;</author>
 			<icon>accessories-character-map</icon>
 			<layout>us</layout>
-			<longname>Gucharmap</longname>
+			<longname>Unicode (Gucharmap)</longname>
 			<description>Unicode Input Method using Gucharmap</description>
 			<rank>0</rank>
 		</engine>
