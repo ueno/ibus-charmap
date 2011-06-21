@@ -54,12 +54,13 @@ namespace IBusGucharmap {
             var charmap = new CharmapPanel ();
             charmap.select.connect (on_charmap_select);
             this.charmap_window.add (charmap);
-            // To tell charmap that charmap_window is hidden - this is
-            // necessary to make sure to hide zoom window (see
-            // CharmapPanel#on_hide()).
+            // Pass around "hide" signal to charmap panel, to tell
+            // that the toplevel window is hidden - this is necessary
+            // to clear zoom window (see CharmapPanel#on_hide()).
             this.charmap_window.hide.connect (() => charmap.hide ());
 
-            // ibus-1.4 does not destroy engines
+            // Manually disable all other instances of this engine as
+            // IBus 1.4 no longer destroy engines.
             foreach (var engine in this.instances) {
                 engine.disable ();
             }
@@ -79,8 +80,28 @@ namespace IBusGucharmap {
         }
 
         public override void set_cursor_location (int x, int y, int w, int h) {
-            y += h;
-            if ((this.x != x || this.y != y) && this.charmap_window != null)
+            if (this.charmap_window == null)
+                return;
+
+            // TODO: More precise placement calculation
+            Gtk.Allocation allocation;
+            this.charmap_window.get_allocation (out allocation);
+
+            int rx, ry, rw, rh;
+            var root_window = Gdk.get_default_root_window ();
+            root_window.get_geometry (out rx, out ry, out rw, out rh);
+
+            if (x + allocation.width > rw)
+                x -= allocation.width;
+            x = int.max (x, rx);
+            
+            if (y + h + allocation.height > rh)
+                y -= allocation.height;
+            else
+                y += h;
+            y = int.max (y, ry);
+
+            if ((this.x != x || this.y != y))
                 this.charmap_window.move (x, y);
             this.x = x;
             this.y = y;
