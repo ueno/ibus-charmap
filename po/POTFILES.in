@@ -1,2 +1,2 @@
 src/engine.vala
-src/charmap-window.vala
+src/charmap-panel.vala
