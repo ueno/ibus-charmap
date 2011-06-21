@@ -19,7 +19,8 @@
 
 namespace IBusGucharmap {
     class Engine : IBus.Engine {
-        private static Gtk.Window charmap_window;
+        private static GLib.List<Engine> instances;
+        private Gtk.Window charmap_window;
         private int x = -1;
         private int y = -1;
 
@@ -46,20 +47,26 @@ namespace IBusGucharmap {
             hide_charmap_window ();
         }
 
-        private void show_charmap_window () {
-            if (this.charmap_window == null) {
-                this.charmap_window = new Gtk.Window (Gtk.WindowType.POPUP);
-                this.charmap_window.set_size_request (INITIAL_WIDTH,
-                                                      INITIAL_HEIGHT);
-                var charmap = new CharmapPanel ();
-                charmap.select.connect (on_charmap_select);
-                this.charmap_window.add (charmap);
-                // To tell charmap that charmap_window is hidden - this is
-                // necessary to make sure to hide zoom window (see
-                // CharmapPanel#on_hide()).
-                this.charmap_window.hide.connect (() => charmap.hide ());
-            }
+        construct {
+            this.charmap_window = new Gtk.Window (Gtk.WindowType.POPUP);
+            this.charmap_window.set_size_request (INITIAL_WIDTH,
+                                                  INITIAL_HEIGHT);
+            var charmap = new CharmapPanel ();
+            charmap.select.connect (on_charmap_select);
+            this.charmap_window.add (charmap);
+            // To tell charmap that charmap_window is hidden - this is
+            // necessary to make sure to hide zoom window (see
+            // CharmapPanel#on_hide()).
+            this.charmap_window.hide.connect (() => charmap.hide ());
 
+            // ibus-1.4 does not destroy engines
+            foreach (var engine in this.instances) {
+                engine.disable ();
+            }
+            this.instances.append (this);
+        }
+
+        private void show_charmap_window () {
             this.charmap_window.show_all ();
             if (this.x >= 0 && this.y >= 0)
                 this.charmap_window.move (this.x, this.y);
