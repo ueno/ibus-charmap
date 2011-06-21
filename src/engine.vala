@@ -19,7 +19,7 @@
 
 namespace IBusGucharmap {
     class Engine : IBus.Engine {
-        private Gtk.Window charmap_window;
+        private static Gtk.Window charmap_window;
         private int x = -1;
         private int y = -1;
 
