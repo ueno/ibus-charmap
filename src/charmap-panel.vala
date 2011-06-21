@@ -63,7 +63,9 @@ class CharmapPanel : Gtk.Box {
         var paned = new Gtk.VBox (false, 0);
 
         // Chapters combo box
-        var model = new Gucharmap.ScriptChaptersModel ();
+        //var model = new Gucharmap.ScriptChaptersModel ();
+        var model = new Gucharmap.BlockChaptersModel ();
+        model.set_sort_column_id (1, Gtk.SortType.ASCENDING);
         this._chapters_view = new Gtk.ComboBox.with_model (model);
         this._chapters_view.changed.connect (on_chapter_changed);
         var renderer = new Gtk.CellRendererText ();
