@@ -78,43 +78,5 @@ namespace IBusGucharmap {
             this.x = x;
             this.y = y;
         }
-
-        public static void main (string[] args) {
-            Intl.bindtextdomain (Config.GETTEXT_PACKAGE, "");
-            Intl.bind_textdomain_codeset (Config.GETTEXT_PACKAGE, "UTF-8");
-            Intl.textdomain (Config.GETTEXT_PACKAGE);
-
-            Gtk.init (ref args);
-            IBus.init ();
-            var bus = new IBus.Bus ();
-
-            if (!bus.is_connected ()) {
-                stderr.printf ("Can not connect to ibus-daemon!\n");
-                return;
-            }
-
-            var factory = new IBus.Factory (bus.get_connection());
-            factory.add_engine ("gucharmap", typeof(IBusGucharmap.Engine));
-            bus.request_name ("org.freedesktop.IBus.Gucharmap", 0);
-            var component = new IBus.Component (
-                "org.freedesktop.IBus.Gucharmap",
-                N_("Gucharmap"), "0.0.1", "GPL",
-                "Daiki Ueno <ueno@unixuser.org>",
-                "http://code.google.com/p/ibus/",
-                "",
-                "ibus-gucharmap");
-            var engine = new IBus.EngineDesc (
-                "gucharmap",
-                N_("Unicode (Gucharmap)"),
-                N_("Unicode input method using Gucharmap"),
-                "other",
-                "GPL",
-                "Daiki Ueno <ueno@unixuser.org>",
-                "accessories-character-map",
-                "us");
-            component.add_engine (engine);
-            bus.register_component (component);
-            IBus.main ();
-        }
     }
 }

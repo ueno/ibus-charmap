@@ -15,7 +15,8 @@ ibus_engine_gucharmap_LDADD = \
 
 ibus_engine_gucharmap_SOURCES = \
 	charmap-panel.vala \
-	engine.vala
+	engine.vala \
+	main.vala
 
 component_DATA = gucharmap.xml
 componentdir = $(datadir)/ibus/component
