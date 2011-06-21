@@ -1,3 +1,4 @@
+// -*- mode: vala; indent-tabs-mode: nil -*-
 // Copyright (C) 2011  Daiki Ueno
 // Copyright (C) 2011  Red Hat, Inc.
 
@@ -17,7 +18,7 @@
 // 02110-1301, USA.
 
 class CharmapPanel : Gtk.Box {
-    private Gucharmap.ChaptersView _chapters_view;
+    private Gtk.ComboBox _chapters_view;
     private Gucharmap.Chartable _chartable;
 
     public Gucharmap.Chartable chartable {
@@ -26,11 +27,12 @@ class CharmapPanel : Gtk.Box {
 
     public signal void select (unichar uc);
 
-    private void on_chapter_selection_changed (Gtk.TreeSelection selection) {
-        Gtk.TreeModel model;
+    private void on_chapter_changed (Gtk.ComboBox combo) {
         Gtk.TreeIter iter;
-        if (selection.get_selected (out model, out iter)) {
-            var codepoint_list = this._chapters_view.get_codepoint_list ();
+        if (combo.get_active_iter (out iter)) {
+            var model =
+                (Gucharmap.ChaptersModel)this._chapters_view.get_model ();
+            var codepoint_list = model.get_codepoint_list (iter);
             this.chartable.set_codepoint_list (codepoint_list);
         }
     }
@@ -41,42 +43,50 @@ class CharmapPanel : Gtk.Box {
             select (uc);
     }
 
+    public void select_character (unichar uc) {
+        var model = (Gucharmap.ChaptersModel)this._chapters_view.get_model ();
+        Gtk.TreeIter iter;
+        if (model.character_to_iter (uc, out iter)) {
+            this._chapters_view.set_active_iter (iter);
+        }
+    }
+
     public CharmapPanel () {
-        var paned = new Gtk.Paned (Gtk.Orientation.HORIZONTAL);
+        var paned = new Gtk.VBox (false, 0);
 
         // chapters
+        var model = new Gucharmap.ScriptChaptersModel ();
+        this._chapters_view = new Gtk.ComboBox.with_model (model);
+        this._chapters_view.changed.connect (on_chapter_changed);
+        var renderer = new Gtk.CellRendererText ();
+        this._chapters_view.pack_start (renderer, true);
+        this._chapters_view.set_attributes (renderer, "text", 1);
+		this._chapters_view.set_vexpand (false);
+
+        paned.pack_start (this._chapters_view, false, false, 0);
+
+        // chartable
         var scrolled_window = new Gtk.ScrolledWindow (null, null);
         scrolled_window.set_policy (Gtk.PolicyType.NEVER,
                                     Gtk.PolicyType.AUTOMATIC);
         scrolled_window.set_shadow_type(Gtk.ShadowType.ETCHED_IN);
 
-        this._chapters_view = new Gucharmap.ChaptersView ();
-        this._chapters_view.set_headers_visible (false);
-
-        var model = new Gucharmap.ScriptChaptersModel ();
-        this._chapters_view.set_model (model);
-
-        var selection = this._chapters_view.get_selection ();
-        selection.changed.connect (on_chapter_selection_changed);
-
-        scrolled_window.add (this._chapters_view);
-        paned.pack1 (scrolled_window, false, true);
-
-        // chartable
-        scrolled_window = new Gtk.ScrolledWindow (null, null);
-        scrolled_window.set_policy (Gtk.PolicyType.NEVER,
-                                    Gtk.PolicyType.AUTOMATIC);
-        scrolled_window.set_shadow_type(Gtk.ShadowType.ETCHED_IN);
-
         this._chartable = new Gucharmap.Chartable ();
+
+		// use normal size GTK font
+		var style_context = this._chartable.get_style_context ();
+		var font_desc = style_context.get_font (Gtk.StateFlags.NORMAL);
+		this._chartable.set_font_desc (font_desc);
+		// enable zooming for the case that the font is too small
         this._chartable.set_zoom_enabled (true);
+
         this._chartable.activate.connect (on_chartable_activate);
         scrolled_window.add (this._chartable);
-        paned.pack2 (scrolled_window, true, true);
+        paned.pack_end (scrolled_window, true, true, 0);
 
-        this._chapters_view.select_locale ();
+        var uc = Gucharmap.unicode_get_locale_character ();
+        select_character (uc);
 
-        paned.set_position (150);
         paned.show_all ();
 
         this.pack_start (paned, true, true, 0);

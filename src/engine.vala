@@ -1,3 +1,4 @@
+// -*- mode: vala; indent-tabs-mode: nil -*-
 // Copyright (C) 2011  Daiki Ueno
 // Copyright (C) 2011  Red Hat, Inc.
 

@@ -20,7 +20,7 @@ namespace Gucharmap {
 	public class ChaptersModel : Gtk.ListStore, Gtk.TreeModel, Gtk.TreeDragSource, Gtk.TreeDragDest, Gtk.TreeSortable, Gtk.Buildable {
 		[CCode (has_construct_function = false)]
 		protected ChaptersModel ();
-		public virtual bool character_to_iter (unichar wc, Gtk.TreeIter iter);
+		public virtual bool character_to_iter (unichar wc, out Gtk.TreeIter iter);
 		public virtual unowned Gucharmap.CodepointList get_book_codepoint_list ();
 		public virtual unowned Gucharmap.CodepointList get_codepoint_list (Gtk.TreeIter iter);
 		public unowned string get_title ();
