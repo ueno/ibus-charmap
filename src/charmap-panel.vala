@@ -43,6 +43,14 @@ class CharmapPanel : Gtk.Box {
             select (uc);
     }
 
+    private void on_hide (Gtk.Widget widget) {
+        // Make sure to hide zoom window when the toplevel window is hidden.
+        if (this._chartable.get_zoom_enabled ()) {
+            this._chartable.set_zoom_enabled (false);
+            this._chartable.set_zoom_enabled (true);
+        }
+    }
+
     public void select_character (unichar uc) {
         var model = (Gucharmap.ChaptersModel)this._chapters_view.get_model ();
         Gtk.TreeIter iter;
@@ -54,7 +62,7 @@ class CharmapPanel : Gtk.Box {
     public CharmapPanel () {
         var paned = new Gtk.VBox (false, 0);
 
-        // chapters
+        // Chapters combo box
         var model = new Gucharmap.ScriptChaptersModel ();
         this._chapters_view = new Gtk.ComboBox.with_model (model);
         this._chapters_view.changed.connect (on_chapter_changed);
@@ -65,7 +73,7 @@ class CharmapPanel : Gtk.Box {
 
         paned.pack_start (this._chapters_view, false, false, 0);
 
-        // chartable
+        // Chartable
         var scrolled_window = new Gtk.ScrolledWindow (null, null);
         scrolled_window.set_policy (Gtk.PolicyType.NEVER,
                                     Gtk.PolicyType.AUTOMATIC);
@@ -73,12 +81,13 @@ class CharmapPanel : Gtk.Box {
 
         this._chartable = new Gucharmap.Chartable ();
 
-		// use normal size GTK font
+		// Use normal size GTK font
 		var style_context = this._chartable.get_style_context ();
 		var font_desc = style_context.get_font (Gtk.StateFlags.NORMAL);
 		this._chartable.set_font_desc (font_desc);
-		// enable zooming for the case that the font is too small
+		// Enable zooming for the case that the font is too small
         this._chartable.set_zoom_enabled (true);
+        this.hide.connect (on_hide);
 
         this._chartable.activate.connect (on_chartable_activate);
         scrolled_window.add (this._chartable);

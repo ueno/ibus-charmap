@@ -38,8 +38,7 @@ class GucharmapEngine : IBus.Engine {
     }
 
     public override void focus_out () {
-        if (this.charmap_window != null)
-            this.charmap_window.hide ();
+        hide_charmap_window ();
     }
 
     private void show_charmap_window () {
@@ -50,11 +49,21 @@ class GucharmapEngine : IBus.Engine {
             var charmap = new CharmapPanel ();
             charmap.select.connect (on_charmap_select);
             this.charmap_window.add (charmap);
+            // To tell charmap that charmap_window is hidden - this is
+            // necessary to make sure to hide zoom window (see
+            // CharmapPanel#on_hide()).
+            this.charmap_window.hide.connect (() => charmap.hide ());
         }
 
         this.charmap_window.show_all ();
         if (this.x >= 0 && this.y >= 0)
             this.charmap_window.move (this.x, this.y);
+    }
+
+    private void hide_charmap_window () {
+        if (this.charmap_window != null) {
+            this.charmap_window.hide ();
+        }
     }
 
     public override void set_cursor_location (int x, int y, int w, int h) {
