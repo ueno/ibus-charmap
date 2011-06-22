@@ -78,7 +78,7 @@ namespace IBusGucharmap {
             if ((IBus.ModifierType.RELEASE_MASK & state) != 0)
                 return false;
 
-            // process cursor key events
+            // process chartable move bindings
             foreach (var binding in this.move_bindings) {
                 if (binding.keyval == keyval && binding.state == state) {
                     this.charmap_panel.chartable.move_cursor (binding.step,
@@ -87,12 +87,17 @@ namespace IBusGucharmap {
                 }
             }
 
-            // process return
+            // process return - activate current character in chartable
             if (keyval == IBus.Return && state == 0) {
                 this.charmap_panel.chartable.activate ();
                 return true;
             }
 
+            // process alt+Down to popup the chapters combobox
+            if ((IBus.ModifierType.MOD1_MASK & state) != 0 &&
+                (keyval == IBus.Down || keyval == IBus.KP_Down)) {
+                this.charmap_panel.chapters.popup ();
+            }
             return false;
         }
 

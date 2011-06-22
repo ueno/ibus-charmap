@@ -19,9 +19,12 @@
 
 namespace IBusGucharmap {
     class CharmapPanel : Gtk.Box {
-        private Gtk.ComboBox _chapters_view;
-        private Gucharmap.Chartable _chartable;
+        private Gtk.ComboBox _chapters;
+        public Gtk.ComboBox chapters {
+            get { return _chapters; }
+        }
 
+        private Gucharmap.Chartable _chartable;
         public Gucharmap.Chartable chartable {
             get { return _chartable; }
         }
@@ -30,7 +33,7 @@ namespace IBusGucharmap {
             Gtk.TreeIter iter;
             if (combo.get_active_iter (out iter)) {
                 var model =
-                (Gucharmap.ChaptersModel)this._chapters_view.get_model ();
+                (Gucharmap.ChaptersModel)this._chapters.get_model ();
                 var codepoint_list = model.get_codepoint_list (iter);
                 this.chartable.set_codepoint_list (codepoint_list);
             }
@@ -46,10 +49,10 @@ namespace IBusGucharmap {
         }
 
         public void select_character (unichar uc) {
-            var model = (Gucharmap.ChaptersModel)this._chapters_view.get_model ();
+            var model = (Gucharmap.ChaptersModel)this._chapters.get_model ();
             Gtk.TreeIter iter;
             if (model.character_to_iter (uc, out iter)) {
-                this._chapters_view.set_active_iter (iter);
+                this._chapters.set_active_iter (iter);
             }
         }
 
@@ -60,14 +63,14 @@ namespace IBusGucharmap {
             //var model = new Gucharmap.ScriptChaptersModel ();
             var model = new Gucharmap.BlockChaptersModel ();
             model.set_sort_column_id (1, Gtk.SortType.ASCENDING);
-            this._chapters_view = new Gtk.ComboBox.with_model (model);
-            this._chapters_view.changed.connect (on_chapter_changed);
+            this._chapters = new Gtk.ComboBox.with_model (model);
+            this._chapters.changed.connect (on_chapter_changed);
             var renderer = new Gtk.CellRendererText ();
-            this._chapters_view.pack_start (renderer, true);
-            this._chapters_view.set_attributes (renderer, "text", 1);
-            this._chapters_view.set_vexpand (false);
+            this._chapters.pack_start (renderer, true);
+            this._chapters.set_attributes (renderer, "text", 1);
+            this._chapters.set_vexpand (false);
 
-            paned.pack_start (this._chapters_view, false, false, 0);
+            paned.pack_start (this._chapters, false, false, 0);
 
             // Chartable
             var scrolled_window = new Gtk.ScrolledWindow (null, null);
