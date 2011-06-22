@@ -20,9 +20,17 @@ You will need:
 Add ibus-gucharmap with ibus-setup, enable it on a GTK application,
 and double-click a Unicode character to input.
 
+ibus-gucharmap supports keyboard-only operation.
+Here are key bindings:
+
+- Alt+Down: select chapter (Unicode block)
+- Return: commit the character on the selected cell in charmap
+- Up/Down: move the current cell in charmap across lines
+- Left/Right: move the current cell in charmap back and forward
+- Page_Up/Page_Down: move the current cell in charmap across pages
+- Home/End: move to the first/end cell in charmap
+
 * TODO
 
 - search
 - config
-- keyboard navigation
-- hide/show charmap
