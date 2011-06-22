@@ -26,8 +26,6 @@ namespace IBusGucharmap {
             get { return _chartable; }
         }
 
-        public signal void select (unichar uc);
-
         private void on_chapter_changed (Gtk.ComboBox combo) {
             Gtk.TreeIter iter;
             if (combo.get_active_iter (out iter)) {
@@ -36,12 +34,6 @@ namespace IBusGucharmap {
                 var codepoint_list = model.get_codepoint_list (iter);
                 this.chartable.set_codepoint_list (codepoint_list);
             }
-        }
-
-        private void on_chartable_activate (Gucharmap.Chartable chartable) {
-            var uc = chartable.get_active_character ();
-            if (uc > 0)
-                select (uc);
         }
 
         private void on_hide (Gtk.Widget widget) {
@@ -93,7 +85,6 @@ namespace IBusGucharmap {
             this._chartable.set_zoom_enabled (true);
             this.hide.connect (on_hide);
 
-            this._chartable.activate.connect (on_chartable_activate);
             scrolled_window.add (this._chartable);
             paned.pack_end (scrolled_window, true, true, 0);
 

@@ -21,15 +21,38 @@ namespace IBusGucharmap {
     class Engine : IBus.Engine {
         private static GLib.List<Engine> instances;
         private Gtk.Window charmap_window;
+        private CharmapPanel charmap_panel;
         private int x = -1;
         private int y = -1;
 
         private const int INITIAL_WIDTH = 320;
         private const int INITIAL_HEIGHT = 240;
 
-        private void on_charmap_select (unichar uc) {
-            commit_text (new IBus.Text.from_string (uc.to_string ()));
+        struct MoveBinding {
+            uint keyval;
+            uint state;
+            Gtk.MovementStep step;
+            int count;
         }
+
+        private const MoveBinding[] move_bindings = {
+            { IBus.Up, 0, Gtk.MovementStep.DISPLAY_LINES, -1 },
+            { IBus.KP_Up, 0, Gtk.MovementStep.DISPLAY_LINES, -1 },
+            { IBus.Down, 0, Gtk.MovementStep.DISPLAY_LINES, 1 },
+            { IBus.KP_Down, 0, Gtk.MovementStep.DISPLAY_LINES, 1 },
+            { IBus.Home, 0, Gtk.MovementStep.BUFFER_ENDS, -1 },
+            { IBus.KP_Home, 0, Gtk.MovementStep.BUFFER_ENDS, -1 },
+            { IBus.End, 0, Gtk.MovementStep.BUFFER_ENDS, 1 },
+            { IBus.KP_End, 0, Gtk.MovementStep.BUFFER_ENDS, 1 },
+            { IBus.Page_Up, 0, Gtk.MovementStep.PAGES, -1 },
+            { IBus.KP_Page_Up, 0, Gtk.MovementStep.PAGES, -1 },
+            { IBus.Page_Down, 0, Gtk.MovementStep.PAGES, 1 },
+            { IBus.KP_Page_Down, 0, Gtk.MovementStep.PAGES, 1 },
+            { IBus.Left, 0, Gtk.MovementStep.VISUAL_POSITIONS, -1 },
+            { IBus.KP_Left, 0, Gtk.MovementStep.VISUAL_POSITIONS, -1 },
+            { IBus.Right, 0, Gtk.MovementStep.VISUAL_POSITIONS, 1 },
+            { IBus.KP_Right, 0, Gtk.MovementStep.VISUAL_POSITIONS, 1 }
+        };
 
         public override void enable () {
             show_charmap_window ();
@@ -38,7 +61,7 @@ namespace IBusGucharmap {
         public override void disable () {
             hide_charmap_window ();
         }
-
+        
         public override void focus_in () {
             show_charmap_window ();
         }
@@ -47,17 +70,49 @@ namespace IBusGucharmap {
             hide_charmap_window ();
         }
 
+        public override bool process_key_event (uint keyval,
+                                                uint keycode,
+                                                uint state)
+        {
+            // ignore release event
+            if ((IBus.ModifierType.RELEASE_MASK & state) != 0)
+                return false;
+
+            // process cursor key events
+            foreach (var binding in this.move_bindings) {
+                if (binding.keyval == keyval && binding.state == state) {
+                    this.charmap_panel.chartable.move_cursor (binding.step,
+                                                              binding.count);
+                    return true;
+                }
+            }
+
+            // process return
+            if (keyval == IBus.Return && state == 0) {
+                this.charmap_panel.chartable.activate ();
+                return true;
+            }
+
+            return false;
+        }
+
+        private void on_chartable_activate (Gucharmap.Chartable chartable) {
+            var uc = chartable.get_active_character ();
+            if (uc > 0)
+                commit_text (new IBus.Text.from_string (uc.to_string ()));
+        }
+
         construct {
             this.charmap_window = new Gtk.Window (Gtk.WindowType.POPUP);
             this.charmap_window.set_size_request (INITIAL_WIDTH,
                                                   INITIAL_HEIGHT);
-            var charmap = new CharmapPanel ();
-            charmap.select.connect (on_charmap_select);
-            this.charmap_window.add (charmap);
+            this.charmap_panel = new CharmapPanel ();
+            this.charmap_panel.chartable.activate.connect (on_chartable_activate);
+            this.charmap_window.add (this.charmap_panel);
             // Pass around "hide" signal to charmap panel, to tell
             // that the toplevel window is hidden - this is necessary
             // to clear zoom window (see CharmapPanel#on_hide()).
-            this.charmap_window.hide.connect (() => charmap.hide ());
+            this.charmap_window.hide.connect (() => this.charmap_panel.hide ());
 
             // Manually disable all other instances of this engine as
             // IBus 1.4 no longer destroy engines.
