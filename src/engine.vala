@@ -20,11 +20,16 @@
 namespace IBusGucharmap {
     class Engine : IBus.Engine {
         private static GLib.List<Engine> instances;
-        private Gtk.Window charmap_window;
-        private CharmapPanel charmap_panel;
+
+        private Gtk.Window window;
         private int saved_x;
         private int saved_y;
 
+        private Gtk.Container panel;
+        private CharmapPanel charmap_panel;
+        private SearchPanel search_panel;
+
+        // const values
         private const int INITIAL_WIDTH = 320;
         private const int INITIAL_HEIGHT = 240;
 
@@ -55,19 +60,28 @@ namespace IBusGucharmap {
         };
 
         public override void enable () {
-            show_charmap_window ();
+            show_window ();
         }
 
         public override void disable () {
-            hide_charmap_window ();
+            hide_window ();
         }
         
         public override void focus_in () {
-            show_charmap_window ();
+            show_window ();
         }
 
         public override void focus_out () {
-            hide_charmap_window ();
+            hide_window ();
+        }
+
+        private void update_panel () {
+            var current = window.get_child ();
+            current.hide ();
+            window.remove (current);
+            panel.show_all ();
+            window.add (panel);
+            show_window ();
         }
 
         public override bool process_key_event (uint keyval,
@@ -77,6 +91,31 @@ namespace IBusGucharmap {
             // ignore release event
             if ((IBus.ModifierType.RELEASE_MASK & state) != 0)
                 return false;
+
+            if ((IBus.ModifierType.CONTROL_MASK & state) != 0 &&
+                (keyval == IBus.f || keyval == IBus.F)) {
+                if (panel == charmap_panel)
+                    panel = search_panel;
+                else
+                    panel = charmap_panel;
+                update_panel ();
+                return true;
+            }
+
+            if (panel == search_panel) {
+                if ((keyval >= IBus.a && keyval <= IBus.z) ||
+                    (keyval >= IBus.A && keyval <= IBus.Z)) {
+                    char c = (char)keyval;
+                    search_panel.append_c (c);
+                } else if (keyval == IBus.BackSpace) {
+                    search_panel.delete_c ();
+                } else if (keyval == IBus.Return || keyval == IBus.Escape) {
+                    search_panel.erase ();
+                    panel = charmap_panel;
+                    update_panel ();
+                }
+                return true;
+            }
 
             // process chartable move bindings
             foreach (var binding in move_bindings) {
@@ -102,7 +141,7 @@ namespace IBusGucharmap {
         }
 
         public override void destroy () {
-            charmap_window.destroy ();
+            window.destroy ();
         }
 
         private void on_chartable_activate (Gucharmap.Chartable chartable) {
@@ -112,16 +151,21 @@ namespace IBusGucharmap {
         }
 
         construct {
-            charmap_window = new Gtk.Window (Gtk.WindowType.POPUP);
-            charmap_window.set_size_request (INITIAL_WIDTH,
+            window = new Gtk.Window (Gtk.WindowType.POPUP);
+            window.set_size_request (INITIAL_WIDTH,
                                                   INITIAL_HEIGHT);
             charmap_panel = new CharmapPanel ();
             charmap_panel.chartable.activate.connect (on_chartable_activate);
-            charmap_window.add (charmap_panel);
+            window.add (charmap_panel);
             // Pass around "hide" signal to charmap panel, to tell
             // that the toplevel window is hidden - this is necessary
             // to clear zoom window (see CharmapPanel#on_hide()).
-            charmap_window.hide.connect (() => charmap_panel.hide ());
+            window.hide.connect (() => charmap_panel.hide ());
+
+            search_panel = new SearchPanel ();
+
+            // The initial window state is charmap display.
+            panel = charmap_panel;
 
             // Manually disable all other instances of this engine as
             // IBus 1.4 no longer destroy engines.
@@ -131,25 +175,25 @@ namespace IBusGucharmap {
             instances.append (this);
         }
 
-        private void show_charmap_window () {
-            charmap_window.show_all ();
+        private void show_window () {
+            window.show_all ();
             if (saved_x >= 0 && saved_y >= 0)
-                charmap_window.move (saved_x, saved_y);
+                window.move (saved_x, saved_y);
         }
 
-        private void hide_charmap_window () {
-            if (charmap_window != null) {
-                charmap_window.hide ();
+        private void hide_window () {
+            if (window != null) {
+                window.hide ();
             }
         }
 
         public override void set_cursor_location (int x, int y, int w, int h) {
-            if (charmap_window == null)
+            if (window == null)
                 return;
 
             // TODO: More precise placement calculation
             Gtk.Allocation allocation;
-            charmap_window.get_allocation (out allocation);
+            window.get_allocation (out allocation);
 
             int rx, ry, rw, rh;
             var root_window = Gdk.get_default_root_window ();
@@ -166,7 +210,7 @@ namespace IBusGucharmap {
             y = int.max (y, ry);
 
             if ((x != saved_x || y != saved_y)) {
-                charmap_window.move (x, y);
+                window.move (x, y);
                 saved_x = x;
                 saved_y = y;
             }

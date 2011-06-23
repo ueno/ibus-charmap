@@ -7,15 +7,18 @@ AM_CPPFLAGS = -include $(CONFIG_HEADER)
 ibus_engine_gucharmap_VALAFLAGS = \
 	--vapidir=. \
 	--pkg config --pkg gtk+-3.0 --pkg gucharmap-2.90 --pkg ibus-1.0 \
+	--pkg sqlite3 \
 	$(VALAFLAGS)
 
 ibus_engine_gucharmap_CFLAGS = \
-	$(GUCHARMAP_CFLAGS) $(IBUS_CFLAGS)
+	$(GUCHARMAP_CFLAGS) $(IBUS_CFLAGS) $(SQLITE_CFLAGS) \
+	-DPACKAGE_DATADIR=\"$(pkgdatadir)\"
 ibus_engine_gucharmap_LDADD = \
-	$(GUCHARMAP_LIBS) $(IBUS_LIBS)
+	$(GUCHARMAP_LIBS) $(IBUS_LIBS) $(SQLITE_LIBS)
 
 ibus_engine_gucharmap_SOURCES = \
 	charmap-panel.vala \
+	search-panel.vala \
 	engine.vala \
 	main.vala
 
