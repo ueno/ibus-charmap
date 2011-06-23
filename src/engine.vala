@@ -101,6 +101,10 @@ namespace IBusGucharmap {
             return false;
         }
 
+        public override void destroy () {
+            charmap_window.destroy ();
+        }
+
         private void on_chartable_activate (Gucharmap.Chartable chartable) {
             var uc = chartable.get_active_character ();
             if (uc > 0)
@@ -125,10 +129,6 @@ namespace IBusGucharmap {
                 engine.disable ();
             }
             instances.append (this);
-        }
-
-        ~Engine() {
-            charmap_window.destroy ();
         }
 
         private void show_charmap_window () {
