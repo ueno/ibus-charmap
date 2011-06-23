@@ -1,4 +1,5 @@
 libexec_PROGRAMS = ibus-engine-gucharmap
+noinst_PROGRAMS = gen-index
 
 # force include config.h before gi18n.h.
 AM_CPPFLAGS = -include $(CONFIG_HEADER)
@@ -18,6 +19,19 @@ ibus_engine_gucharmap_SOURCES = \
 	engine.vala \
 	main.vala
 
+gen_index_VALAFLAGS = \
+	--vapidir=. \
+	--pkg config --pkg gtk+-3.0 --pkg gucharmap-2.90 --pkg sqlite3 \
+	$(VALAFLAGS)
+
+gen_index_CFLAGS = \
+	$(GUCHARMAP_CFLAGS) $(SQLITE_CFLAGS)
+gen_index_LDADD = \
+	$(GUCHARMAP_LIBS) $(SQLITE_LIBS)
+
+gen_index_SOURCES = \
+	gen-index.vala
+
 component_DATA = gucharmap.xml
 componentdir = $(datadir)/ibus/component
 
@@ -29,6 +43,10 @@ gucharmap.xml: gucharmap.xml.in
 		s=`cat $<`; \
 		eval "echo \"$${s}\""; \
 	) > $@
+
+pkgdata_DATA = unicodenames.sqlite3
+unicodenames.sqlite3: gen-index
+	$(AM_V_GEN) $(builddir)/gen-index $@
 
 CLEANFILES = *.[ch] gucharmap.xml
 DISTCLEANFILES = gucharmap.xml.in

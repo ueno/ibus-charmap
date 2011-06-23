@@ -61,6 +61,11 @@ PKG_CHECK_MODULES(GUCHARMAP, [
     gucharmap-2.90
 ])
 
+# check sqlite
+PKG_CHECK_MODULES(SQLITE, [
+    sqlite3
+])
+
 # check vala
 AM_PROG_VALAC([0.10.0])
 
