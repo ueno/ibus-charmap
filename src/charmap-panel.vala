@@ -32,27 +32,26 @@ namespace IBusGucharmap {
         private void on_chapter_changed (Gtk.ComboBox combo) {
             Gtk.TreeIter iter;
             if (combo.get_active_iter (out iter)) {
-                var model =
-                (Gucharmap.ChaptersModel)this._chapters.get_model ();
+                var model = (Gucharmap.ChaptersModel)_chapters.get_model ();
                 var codepoint_list = model.get_codepoint_list (iter);
-                this.chartable.set_codepoint_list (codepoint_list);
+                _chartable.set_codepoint_list (codepoint_list);
             }
         }
 
         private void on_hide (Gtk.Widget widget) {
             // Make sure to clear zoom window when the toplevel window
             // is hidden.
-            if (this._chartable.get_zoom_enabled ()) {
-                this._chartable.set_zoom_enabled (false);
-                this._chartable.set_zoom_enabled (true);
+            if (_chartable.get_zoom_enabled ()) {
+                _chartable.set_zoom_enabled (false);
+                _chartable.set_zoom_enabled (true);
             }
         }
 
         public void select_character (unichar uc) {
-            var model = (Gucharmap.ChaptersModel)this._chapters.get_model ();
+            var model = (Gucharmap.ChaptersModel)_chapters.get_model ();
             Gtk.TreeIter iter;
             if (model.character_to_iter (uc, out iter)) {
-                this._chapters.set_active_iter (iter);
+                _chapters.set_active_iter (iter);
             }
         }
 
@@ -63,14 +62,14 @@ namespace IBusGucharmap {
             //var model = new Gucharmap.ScriptChaptersModel ();
             var model = new Gucharmap.BlockChaptersModel ();
             model.set_sort_column_id (1, Gtk.SortType.ASCENDING);
-            this._chapters = new Gtk.ComboBox.with_model (model);
-            this._chapters.changed.connect (on_chapter_changed);
+            _chapters = new Gtk.ComboBox.with_model (model);
+            _chapters.changed.connect (on_chapter_changed);
             var renderer = new Gtk.CellRendererText ();
-            this._chapters.pack_start (renderer, true);
-            this._chapters.set_attributes (renderer, "text", 1);
-            this._chapters.set_vexpand (false);
+            _chapters.pack_start (renderer, true);
+            _chapters.set_attributes (renderer, "text", 1);
+            _chapters.set_vexpand (false);
 
-            paned.pack_start (this._chapters, false, false, 0);
+            paned.pack_start (_chapters, false, false, 0);
 
             // Chartable
             var scrolled_window = new Gtk.ScrolledWindow (null, null);
@@ -78,17 +77,17 @@ namespace IBusGucharmap {
                                         Gtk.PolicyType.AUTOMATIC);
             scrolled_window.set_shadow_type(Gtk.ShadowType.ETCHED_IN);
 
-            this._chartable = new Gucharmap.Chartable ();
+            _chartable = new Gucharmap.Chartable ();
 
             // Use normal size GTK font
-            var style_context = this._chartable.get_style_context ();
+            var style_context = _chartable.get_style_context ();
             var font_desc = style_context.get_font (Gtk.StateFlags.NORMAL);
-            this._chartable.set_font_desc (font_desc);
+            _chartable.set_font_desc (font_desc);
             // Enable zooming for the case that the font is too small
-            this._chartable.set_zoom_enabled (true);
+            _chartable.set_zoom_enabled (true);
             this.hide.connect (on_hide);
 
-            scrolled_window.add (this._chartable);
+            scrolled_window.add (_chartable);
             paned.pack_end (scrolled_window, true, true, 0);
 
             var uc = Gucharmap.unicode_get_locale_character ();

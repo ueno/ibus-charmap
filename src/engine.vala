@@ -22,8 +22,8 @@ namespace IBusGucharmap {
         private static GLib.List<Engine> instances;
         private Gtk.Window charmap_window;
         private CharmapPanel charmap_panel;
-        private int x = -1;
-        private int y = -1;
+        private int saved_x;
+        private int saved_y;
 
         private const int INITIAL_WIDTH = 320;
         private const int INITIAL_HEIGHT = 240;
@@ -79,24 +79,24 @@ namespace IBusGucharmap {
                 return false;
 
             // process chartable move bindings
-            foreach (var binding in this.move_bindings) {
+            foreach (var binding in move_bindings) {
                 if (binding.keyval == keyval && binding.state == state) {
-                    this.charmap_panel.chartable.move_cursor (binding.step,
-                                                              binding.count);
+                    charmap_panel.chartable.move_cursor (binding.step,
+                                                         binding.count);
                     return true;
                 }
             }
 
             // process return - activate current character in chartable
             if (keyval == IBus.Return && state == 0) {
-                this.charmap_panel.chartable.activate ();
+                charmap_panel.chartable.activate ();
                 return true;
             }
 
             // process alt+Down to popup the chapters combobox
             if ((IBus.ModifierType.MOD1_MASK & state) != 0 &&
                 (keyval == IBus.Down || keyval == IBus.KP_Down)) {
-                this.charmap_panel.chapters.popup ();
+                charmap_panel.chapters.popup ();
             }
             return false;
         }
@@ -108,44 +108,48 @@ namespace IBusGucharmap {
         }
 
         construct {
-            this.charmap_window = new Gtk.Window (Gtk.WindowType.POPUP);
-            this.charmap_window.set_size_request (INITIAL_WIDTH,
+            charmap_window = new Gtk.Window (Gtk.WindowType.POPUP);
+            charmap_window.set_size_request (INITIAL_WIDTH,
                                                   INITIAL_HEIGHT);
-            this.charmap_panel = new CharmapPanel ();
-            this.charmap_panel.chartable.activate.connect (on_chartable_activate);
-            this.charmap_window.add (this.charmap_panel);
+            charmap_panel = new CharmapPanel ();
+            charmap_panel.chartable.activate.connect (on_chartable_activate);
+            charmap_window.add (charmap_panel);
             // Pass around "hide" signal to charmap panel, to tell
             // that the toplevel window is hidden - this is necessary
             // to clear zoom window (see CharmapPanel#on_hide()).
-            this.charmap_window.hide.connect (() => this.charmap_panel.hide ());
+            charmap_window.hide.connect (() => charmap_panel.hide ());
 
             // Manually disable all other instances of this engine as
             // IBus 1.4 no longer destroy engines.
-            foreach (var engine in this.instances) {
+            foreach (var engine in instances) {
                 engine.disable ();
             }
-            this.instances.append (this);
+            instances.append (this);
+        }
+
+        ~Engine() {
+            charmap_window.destroy ();
         }
 
         private void show_charmap_window () {
-            this.charmap_window.show_all ();
-            if (this.x >= 0 && this.y >= 0)
-                this.charmap_window.move (this.x, this.y);
+            charmap_window.show_all ();
+            if (saved_x >= 0 && saved_y >= 0)
+                charmap_window.move (saved_x, saved_y);
         }
 
         private void hide_charmap_window () {
-            if (this.charmap_window != null) {
-                this.charmap_window.hide ();
+            if (charmap_window != null) {
+                charmap_window.hide ();
             }
         }
 
         public override void set_cursor_location (int x, int y, int w, int h) {
-            if (this.charmap_window == null)
+            if (charmap_window == null)
                 return;
 
             // TODO: More precise placement calculation
             Gtk.Allocation allocation;
-            this.charmap_window.get_allocation (out allocation);
+            charmap_window.get_allocation (out allocation);
 
             int rx, ry, rw, rh;
             var root_window = Gdk.get_default_root_window ();
@@ -161,10 +165,11 @@ namespace IBusGucharmap {
                 y += h;
             y = int.max (y, ry);
 
-            if ((this.x != x || this.y != y))
-                this.charmap_window.move (x, y);
-            this.x = x;
-            this.y = y;
+            if ((x != saved_x || y != saved_y)) {
+                charmap_window.move (x, y);
+                saved_x = x;
+                saved_y = y;
+            }
         }
     }
 }
