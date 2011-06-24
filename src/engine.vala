@@ -99,22 +99,21 @@ namespace IBusGucharmap {
             // process chartable move bindings
             foreach (var binding in move_bindings) {
                 if (binding.keyval == keyval && binding.state == state) {
-                    charmap_panel.chartable.move_cursor (binding.step,
-                                                         binding.count);
+                    charmap_panel.move_cursor (binding.step, binding.count);
                     return true;
                 }
             }
 
             // process return - activate current character in chartable
             if (keyval == IBus.Return && state == 0) {
-                charmap_panel.chartable.activate ();
+                charmap_panel.activate_selected ();
                 return true;
             }
 
             // process alt+Down to popup the chapters combobox
             if ((IBus.ModifierType.MOD1_MASK & state) != 0 &&
                 (keyval == IBus.Down || keyval == IBus.KP_Down)) {
-                charmap_panel.chapters.popup ();
+                charmap_panel.popup_chapters ();
                 return true;
             }
 
@@ -145,7 +144,7 @@ namespace IBusGucharmap {
 
             if (keyval == IBus.BackSpace) {
                 search_panel.delete_c ();
-                if (search_panel.entry.get_text ().length == 0) {
+                if (search_panel.get_text ().length == 0) {
                     panel = charmap_panel;
                     update_panel ();
                 }
@@ -161,7 +160,7 @@ namespace IBusGucharmap {
             }
 
             if (keyval == IBus.Return) {
-                search_panel.activate_current_match ();
+                search_panel.activate_selected ();
                 return true;
             }
 
@@ -189,15 +188,14 @@ namespace IBusGucharmap {
             window.destroy ();
         }
 
-        private void on_chartable_activate (Gucharmap.Chartable chartable) {
-            var uc = chartable.get_active_character ();
+        private void on_charmap_activate_character (unichar uc) {
             if (uc > 0)
                 commit_text (new IBus.Text.from_string (uc.to_string ()));
         }
 
-        private void on_match_activated (unichar uc) {
+        private void on_search_activate_character (unichar uc) {
             search_panel.erase ();
-            charmap_panel.select_character (uc);
+            charmap_panel.activate_character (uc);
             panel = charmap_panel;
             update_panel ();
         }
@@ -207,18 +205,20 @@ namespace IBusGucharmap {
             window.set_size_request (INITIAL_WIDTH,
                                                   INITIAL_HEIGHT);
             charmap_panel = new CharmapPanel ();
-            charmap_panel.chartable.activate.connect (on_chartable_activate);
-            window.add (charmap_panel);
+            charmap_panel.activate_character.connect (on_charmap_activate_character);
+
+            search_panel = new SearchPanel ();
+            search_panel.activate_character.connect (on_search_activate_character);
+
+            // The initial window state is charmap display.
+            panel = charmap_panel;
+
+            window.add (panel);
+
             // Pass around "hide" signal to charmap panel, to tell
             // that the toplevel window is hidden - this is necessary
             // to clear zoom window (see CharmapPanel#on_hide()).
             window.hide.connect (() => charmap_panel.hide ());
-
-            search_panel = new SearchPanel ();
-            search_panel.match_activated.connect (on_match_activated);
-
-            // The initial window state is charmap display.
-            panel = charmap_panel;
 
             // Manually disable all other instances of this engine as
             // IBus 1.4 no longer destroy engines.

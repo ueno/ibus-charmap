@@ -32,58 +32,50 @@ namespace IBusGucharmap {
     }
 
 	class SearchPanel : Gtk.Box {
-		private Gtk.Entry _entry;
-		public Gtk.Entry entry {
-			get { return _entry; }
-		}
+		private Gtk.Entry entry;
+        private Gtk.TreeView matches;
 
-        private Gtk.TreeView _matches;
-        public Gtk.TreeView matches {
-            get { return _matches; }
-        }
-		private static Sqlite.Database _database;
+		private static Sqlite.Database database;
         private uint idle_search_id = 0;
 
-        public signal void match_activated (unichar uc);
+        public signal void activate_character (unichar uc);
 
 		public void append_c (char c) {
-			var text = _entry.get_text ();
+			var text = entry.get_text ();
 			StringBuilder builder = new StringBuilder (text);
 			builder.append_c (c);
-			_entry.set_text (builder.str);
+			entry.set_text (builder.str);
             update_matches ();
 		}
 
 		public void delete_c () {
-			var text = _entry.get_text ();
+			var text = entry.get_text ();
 			StringBuilder builder = new StringBuilder (text);
 			builder.truncate (builder.len - 1);
-			_entry.set_text (builder.str);
+			entry.set_text (builder.str);
             update_matches ();
 		}
 
 		public void erase () {
-			_entry.set_text ("");
+			entry.set_text ("");
             update_matches ();
 		}
 
-		static construct {
-			var filename = Path.build_filename (Config.PACKAGE_DATADIR,
-												Config.UNICODENAMESFILE);
-            int rc;
+        public string get_text () {
+            return entry.get_text ();
+        }
 
-            rc = Sqlite.Database.open (filename, out _database);
-            if (rc != Sqlite.OK) {
-                stderr.printf ("can't open database\n");
-                assert_not_reached ();
-            }
-		}
+        public void activate_selected () {
+            Gtk.TreePath path;
+            matches.get_cursor (out path, null);
+            matches.row_activated (path, matches.get_column (0));
+        }
 
         public void move_cursor (Gtk.MovementStep step, int count) {
             if (step == Gtk.MovementStep.DISPLAY_LINES) {
                 Gtk.TreePath path;
-                _matches.grab_focus ();
-                _matches.get_cursor (out path, null);
+                matches.grab_focus ();
+                matches.get_cursor (out path, null);
                 while (count < 0) {
                     path.prev ();
                     count++;
@@ -92,33 +84,27 @@ namespace IBusGucharmap {
                     path.next ();
                     count--;
                 }
-                var store = _matches.get_model ();
+                var store = matches.get_model ();
                 Gtk.TreeIter iter;
                 if (store.get_iter (out iter, path))
-                    _matches.set_cursor (path, null, false);
+                    matches.set_cursor (path, null, false);
             }
         }
 
         private void on_row_activated (Gtk.TreePath path,
                                        Gtk.TreeViewColumn column)
         {
-            var store = _matches.get_model ();
+            var store = matches.get_model ();
             Gtk.TreeIter iter;
             store.get_iter (out iter, path);
             unichar uc;
             store.get (iter, 0, out uc);
-            match_activated (uc);
-        }
-
-        public void activate_current_match () {
-            Gtk.TreePath path;
-            _matches.get_cursor (out path, null);
-            _matches.row_activated (path, _matches.get_column (0));
+            activate_character (uc);
         }
 
         private bool idle_search () {
-			var text = _entry.get_text ();
-            var store = (Gtk.ListStore)_matches.get_model ();
+			var text = entry.get_text ();
+            var store = (Gtk.ListStore)matches.get_model ();
             
             Sqlite.Statement stmt;
             string sql = """
@@ -126,17 +112,17 @@ SELECT codepoint, name FROM unicode_names WHERE name LIKE ? LIMIT 100;
 """;
             int rc;
 
-            rc = _database.prepare (sql, sql.length, out stmt);
+            rc = database.prepare (sql, sql.length, out stmt);
             if (rc != Sqlite.OK) {
                 stderr.printf ("can't prepare statement: %s\n",
-                               _database.errmsg ());
+                               database.errmsg ());
                 return false;
             }
 
             rc = stmt.bind_text (1, "%" + text.replace ("%", "%%") + "%");
             if (rc != Sqlite.OK) {
                 stderr.printf ("can't bind values: %s\n",
-                               _database.errmsg ());
+                               database.errmsg ());
                 return false;
             }
 
@@ -157,7 +143,7 @@ SELECT codepoint, name FROM unicode_names WHERE name LIKE ? LIMIT 100;
                     break;
                 } else {
                     stderr.printf ("can't step: %s\n",
-                                   _database.errmsg ());
+                                   database.errmsg ());
                     break;
                 }
             }
@@ -169,8 +155,8 @@ SELECT codepoint, name FROM unicode_names WHERE name LIKE ? LIMIT 100;
         }
         
         private void update_matches () {
-			var text = _entry.get_text ();
-            var store = (Gtk.ListStore)_matches.get_model ();
+			var text = entry.get_text ();
+            var store = (Gtk.ListStore)matches.get_model ();
 
             if (idle_search_id > 0)
                 Source.remove (idle_search_id);
@@ -181,12 +167,24 @@ SELECT codepoint, name FROM unicode_names WHERE name LIKE ? LIMIT 100;
                 idle_search_id = Idle.add (idle_search);
         }
 
+		static construct {
+			var filename = Path.build_filename (Config.PACKAGE_DATADIR,
+												Config.UNICODENAMESFILE);
+            int rc;
+
+            rc = Sqlite.Database.open (filename, out database);
+            if (rc != Sqlite.OK) {
+                stderr.printf ("can't open database\n");
+                assert_not_reached ();
+            }
+		}
+
 		public SearchPanel () {
             var paned = new Gtk.VBox (false, 0);
 
             // Search entry
-			_entry = new Gtk.Entry ();
-			paned.pack_start (_entry, false, false, 0);
+			entry = new Gtk.Entry ();
+			paned.pack_start (entry, false, false, 0);
 
             // Match results tree view
             var scrolled_window = new Gtk.ScrolledWindow (null, null);
@@ -197,22 +195,22 @@ SELECT codepoint, name FROM unicode_names WHERE name LIKE ? LIMIT 100;
             var model = new Gtk.ListStore (2,
                                            typeof (unichar),
                                            typeof (string));
-            _matches = new Gtk.TreeView.with_model (model);
+            matches = new Gtk.TreeView.with_model (model);
             Gtk.CellRenderer renderer = new CharacterRenderer ();
-            _matches.insert_column_with_attributes (-1,
+            matches.insert_column_with_attributes (-1,
                                                     "codepoint",
                                                     renderer, "codepoint", 0);
             renderer = new Gtk.CellRendererText ();
-            _matches.insert_column_with_attributes (-1,
+            matches.insert_column_with_attributes (-1,
                                                     "name",
                                                     renderer, "text", 1);
-            _matches.set_headers_visible (false);
-            _matches.row_activated.connect (on_row_activated);
+            matches.set_headers_visible (false);
+            matches.row_activated.connect (on_row_activated);
 
-            var column = _matches.get_column (1);
+            var column = matches.get_column (1);
             column.set_sizing (Gtk.TreeViewColumnSizing.FIXED);
 
-            scrolled_window.add (_matches);
+            scrolled_window.add (matches);
             paned.pack_end (scrolled_window, true, true, 0);
 
             paned.show_all ();
