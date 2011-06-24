@@ -12,7 +12,8 @@ ibus_engine_gucharmap_VALAFLAGS = \
 
 ibus_engine_gucharmap_CFLAGS = \
 	$(GUCHARMAP_CFLAGS) $(IBUS_CFLAGS) $(SQLITE_CFLAGS) \
-	-DPACKAGE_DATADIR=\"$(pkgdatadir)\"
+	-DPACKAGE_DATADIR=\"$(pkgdatadir)\" \
+	-DUNICODENAMESFILE=\"$(unicodenames)\"
 ibus_engine_gucharmap_LDADD = \
 	$(GUCHARMAP_LIBS) $(IBUS_LIBS) $(SQLITE_LIBS)
 
@@ -47,10 +48,11 @@ gucharmap.xml: gucharmap.xml.in
 		eval "echo \"$${s}\""; \
 	) > $@
 
-pkgdata_DATA = unicodenames.sqlite3
+unicodenames = unicodenames.sqlite3
+pkgdata_DATA = $(unicodenames)
 unicodenames.sqlite3: gen-index
 	$(AM_V_GEN) $(builddir)/gen-index $@
 
-CLEANFILES = *.[ch] gucharmap.xml
+CLEANFILES = *.[ch] gucharmap.xml $(unicodenames)
 DISTCLEANFILES = gucharmap.xml.in
 EXTRA_DIST = gucharmap.xml.in.in gucharmap-2.90.vapi config.vapi
