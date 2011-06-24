@@ -122,7 +122,7 @@ namespace IBusGucharmap {
             
             Sqlite.Statement stmt;
             string sql = """
-SELECT codepoint, name FROM unicode_names WHERE name LIKE ? LIMIT 10;
+SELECT codepoint, name FROM unicode_names WHERE name LIKE ? LIMIT 100;
 """;
             int rc;
 
