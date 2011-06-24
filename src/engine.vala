@@ -84,38 +84,17 @@ namespace IBusGucharmap {
             show_window ();
         }
 
-        public override bool process_key_event (uint keyval,
+        private static bool isascii (uint keyval) {
+            return 0x20 <= keyval && keyval <= 0x7E;
+        }
+
+        private bool process_charmap_key_event (uint keyval,
                                                 uint keycode,
                                                 uint state)
         {
             // ignore release event
             if ((IBus.ModifierType.RELEASE_MASK & state) != 0)
                 return false;
-
-            if ((IBus.ModifierType.CONTROL_MASK & state) != 0 &&
-                (keyval == IBus.f || keyval == IBus.F)) {
-                if (panel == charmap_panel)
-                    panel = search_panel;
-                else
-                    panel = charmap_panel;
-                update_panel ();
-                return true;
-            }
-
-            if (panel == search_panel) {
-                if ((keyval >= IBus.a && keyval <= IBus.z) ||
-                    (keyval >= IBus.A && keyval <= IBus.Z)) {
-                    char c = (char)keyval;
-                    search_panel.append_c (c);
-                } else if (keyval == IBus.BackSpace) {
-                    search_panel.delete_c ();
-                } else if (keyval == IBus.Return || keyval == IBus.Escape) {
-                    search_panel.erase ();
-                    panel = charmap_panel;
-                    update_panel ();
-                }
-                return true;
-            }
 
             // process chartable move bindings
             foreach (var binding in move_bindings) {
@@ -136,8 +115,71 @@ namespace IBusGucharmap {
             if ((IBus.ModifierType.MOD1_MASK & state) != 0 &&
                 (keyval == IBus.Down || keyval == IBus.KP_Down)) {
                 charmap_panel.chapters.popup ();
+                return true;
             }
-            return false;
+
+            if (state == 0 && isascii (keyval)) {
+                char c = (char)keyval;
+                search_panel.append_c (c);
+                panel = search_panel;
+                update_panel ();
+                return true;
+            }
+                
+            return true;
+        }
+
+        private bool process_search_key_event (uint keyval,
+                                                uint keycode,
+                                                uint state)
+        {
+            // ignore release event
+            if ((IBus.ModifierType.RELEASE_MASK & state) != 0)
+                return false;
+
+            if (state == 0 && isascii (keyval)) {
+                char c = (char)keyval;
+                search_panel.append_c (c);
+                return true;
+            }
+
+            if (keyval == IBus.BackSpace) {
+                search_panel.delete_c ();
+                if (search_panel.entry.get_text ().length == 0) {
+                    panel = charmap_panel;
+                    update_panel ();
+                }
+                return true;
+            }
+
+            // process chartable move bindings
+            foreach (var binding in move_bindings) {
+                if (binding.keyval == keyval && binding.state == state) {
+                    search_panel.move_cursor (binding.step, binding.count);
+                    return true;
+                }
+            }
+
+            if (keyval == IBus.Return || keyval == IBus.Escape) {
+                if (keyval == IBus.Return)
+                    search_panel.activate_current_match ();
+                search_panel.erase ();
+                panel = charmap_panel;
+                update_panel ();
+                return true;
+            }
+ 
+            return true;
+        }
+
+        public override bool process_key_event (uint keyval,
+                                                uint keycode,
+                                                uint state)
+        {
+            if (panel == charmap_panel)
+                return process_charmap_key_event (keyval, keycode, state);
+            else
+                return process_search_key_event (keyval, keycode, state);
         }
 
         public override void destroy () {
@@ -148,6 +190,10 @@ namespace IBusGucharmap {
             var uc = chartable.get_active_character ();
             if (uc > 0)
                 commit_text (new IBus.Text.from_string (uc.to_string ()));
+        }
+
+        private void on_match_activated (unichar uc) {
+            charmap_panel.select_character (uc);
         }
 
         construct {
@@ -163,6 +209,7 @@ namespace IBusGucharmap {
             window.hide.connect (() => charmap_panel.hide ());
 
             search_panel = new SearchPanel ();
+            search_panel.match_activated.connect (on_match_activated);
 
             // The initial window state is charmap display.
             panel = charmap_panel;

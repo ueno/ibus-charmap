@@ -34,7 +34,7 @@ CREATE INDEX unicode_blocks_by_name ON unicode_blocks (name);
 
 DROP TABLE IF EXISTS unicode_names;
 CREATE TABLE unicode_names (
-    code INTEGER PRIMARY KEY,
+    codepoint INTEGER PRIMARY KEY,
     name TEXT,
     block_id INTEGER
 );

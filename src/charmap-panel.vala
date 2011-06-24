@@ -52,6 +52,7 @@ namespace IBusGucharmap {
             Gtk.TreeIter iter;
             if (model.character_to_iter (uc, out iter)) {
                 _chapters.set_active_iter (iter);
+                _chartable.set_active_character (uc);
             }
         }
 

@@ -208,7 +208,7 @@ namespace Gucharmap {
 	[CCode (cheader_filename = "gucharmap/gucharmap.h")]
 	public static bool unichar_isgraph (unichar uc);
 	[CCode (cheader_filename = "gucharmap/gucharmap.h")]
-	public static int unichar_to_printable_utf8 (unichar uc, string outbuf);
+	public static int unichar_to_printable_utf8 (unichar uc, out string outbuf);
 	[CCode (cheader_filename = "gucharmap/gucharmap.h")]
 	public static UnicodeType unichar_type (unichar uc);
 	[CCode (cheader_filename = "gucharmap/gucharmap.h")]
