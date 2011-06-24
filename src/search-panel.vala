@@ -198,14 +198,14 @@ SELECT codepoint, name FROM unicode_names WHERE name LIKE ? LIMIT 10;
                                            typeof (unichar),
                                            typeof (string));
             _matches = new Gtk.TreeView.with_model (model);
-            var code_renderer = new CharacterRenderer ();
+            Gtk.CellRenderer renderer = new CharacterRenderer ();
             _matches.insert_column_with_attributes (-1,
                                                     "codepoint",
-                                                    code_renderer, "codepoint", 0);
-            var name_renderer = new Gtk.CellRendererText ();
+                                                    renderer, "codepoint", 0);
+            renderer = new Gtk.CellRendererText ();
             _matches.insert_column_with_attributes (-1,
                                                     "name",
-                                                    name_renderer, "text", 1);
+                                                    renderer, "text", 1);
             _matches.set_headers_visible (false);
             _matches.row_activated.connect (on_row_activated);
 

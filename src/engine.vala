@@ -160,9 +160,12 @@ namespace IBusGucharmap {
                 }
             }
 
-            if (keyval == IBus.Return || keyval == IBus.Escape) {
-                if (keyval == IBus.Return)
-                    search_panel.activate_current_match ();
+            if (keyval == IBus.Return) {
+                search_panel.activate_current_match ();
+                return true;
+            }
+
+            if (keyval == IBus.Escape) {
                 search_panel.erase ();
                 panel = charmap_panel;
                 update_panel ();
@@ -193,7 +196,10 @@ namespace IBusGucharmap {
         }
 
         private void on_match_activated (unichar uc) {
+            search_panel.erase ();
             charmap_panel.select_character (uc);
+            panel = charmap_panel;
+            update_panel ();
         }
 
         construct {
