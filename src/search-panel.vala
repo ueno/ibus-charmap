@@ -150,6 +150,9 @@ SELECT codepoint, name FROM unicode_names WHERE name LIKE ? LIMIT 100;
 
             while (valid)
                 valid = store.remove (iter);
+
+            if (store.get_iter_first (out iter))
+                matches.set_cursor (store.get_path (iter), null, false);
                 
             return false;
         }
