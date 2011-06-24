@@ -49,10 +49,10 @@ gucharmap.xml: gucharmap.xml.in
 	) > $@
 
 unicodenames = unicodenames.sqlite3
-pkgdata_DATA = $(unicodenames)
-unicodenames.sqlite3: gen-index
+dist_pkgdata_DATA = $(unicodenames)
+unicodenames.sqlite3: | gen-index
 	$(AM_V_GEN) $(builddir)/gen-index $@
 
-CLEANFILES = *.[ch] gucharmap.xml $(unicodenames)
-DISTCLEANFILES = gucharmap.xml.in
+CLEANFILES = *.[ch] gucharmap.xml
+DISTCLEANFILES = gucharmap.xml.in $(unicodenames)
 EXTRA_DIST = gucharmap.xml.in.in gucharmap-2.90.vapi config.vapi
