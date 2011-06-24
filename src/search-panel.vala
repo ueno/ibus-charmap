@@ -31,35 +31,35 @@ namespace IBusGucharmap {
         }
     }
 
-	class SearchPanel : Gtk.Box {
-		private Gtk.Entry entry;
+    class SearchPanel : Gtk.Box {
+        private Gtk.Entry entry;
         private Gtk.TreeView matches;
 
-		private static Sqlite.Database database;
+        private static Sqlite.Database database;
         private uint idle_search_id = 0;
 
         public signal void activate_character (unichar uc);
 
-		public void append_c (char c) {
-			var text = entry.get_text ();
-			StringBuilder builder = new StringBuilder (text);
-			builder.append_c (c);
-			entry.set_text (builder.str);
+        public void append_c (char c) {
+            var text = entry.get_text ();
+            StringBuilder builder = new StringBuilder (text);
+            builder.append_c (c);
+            entry.set_text (builder.str);
             update_matches ();
-		}
+        }
 
-		public void delete_c () {
-			var text = entry.get_text ();
-			StringBuilder builder = new StringBuilder (text);
-			builder.truncate (builder.len - 1);
-			entry.set_text (builder.str);
+        public void delete_c () {
+            var text = entry.get_text ();
+            StringBuilder builder = new StringBuilder (text);
+            builder.truncate (builder.len - 1);
+            entry.set_text (builder.str);
             update_matches ();
-		}
+        }
 
-		public void erase () {
-			entry.set_text ("");
+        public void erase () {
+            entry.set_text ("");
             update_matches ();
-		}
+        }
 
         public string get_text () {
             return entry.get_text ();
@@ -103,7 +103,7 @@ namespace IBusGucharmap {
         }
 
         private bool idle_search () {
-			var text = entry.get_text ();
+            var text = entry.get_text ();
             var store = (Gtk.ListStore)matches.get_model ();
             
             Sqlite.Statement stmt;
@@ -158,7 +158,7 @@ SELECT codepoint, name FROM unicode_names WHERE name LIKE ? LIMIT 100;
         }
         
         private void update_matches () {
-			var text = entry.get_text ();
+            var text = entry.get_text ();
             var store = (Gtk.ListStore)matches.get_model ();
 
             if (idle_search_id > 0)
@@ -170,9 +170,9 @@ SELECT codepoint, name FROM unicode_names WHERE name LIKE ? LIMIT 100;
                 idle_search_id = Idle.add (idle_search);
         }
 
-		static construct {
-			var filename = Path.build_filename (Config.PACKAGE_DATADIR,
-												Config.UNICODENAMESFILE);
+        static construct {
+            var filename = Path.build_filename (Config.PACKAGE_DATADIR,
+                                                Config.UNICODENAMESFILE);
             int rc;
 
             rc = Sqlite.Database.open (filename, out database);
@@ -180,14 +180,14 @@ SELECT codepoint, name FROM unicode_names WHERE name LIKE ? LIMIT 100;
                 stderr.printf ("can't open database\n");
                 assert_not_reached ();
             }
-		}
+        }
 
-		public SearchPanel () {
+        public SearchPanel () {
             var paned = new Gtk.VBox (false, 0);
 
             // Search entry
-			entry = new Gtk.Entry ();
-			paned.pack_start (entry, false, false, 0);
+            entry = new Gtk.Entry ();
+            paned.pack_start (entry, false, false, 0);
 
             // Match results tree view
             var scrolled_window = new Gtk.ScrolledWindow (null, null);
@@ -219,6 +219,6 @@ SELECT codepoint, name FROM unicode_names WHERE name LIKE ? LIMIT 100;
             paned.show_all ();
 
             this.pack_start (paned, true, true, 0);
-		}
-	}
+        }
+    }
 }
