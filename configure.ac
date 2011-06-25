@@ -53,7 +53,7 @@ AM_PROG_LIBTOOL
 
 # check ibus
 PKG_CHECK_MODULES(IBUS, [
-    ibus-1.0 >= 1.3.99
+    ibus-1.0
 ])
 
 # check gucharmap
@@ -67,7 +67,7 @@ PKG_CHECK_MODULES(SQLITE, [
 ])
 
 # check vala
-AM_PROG_VALAC([0.10.0])
+AM_PROG_VALAC([0.12.0])
 
 AC_PATH_PROG(VALAC, valac, valac)
 AC_SUBST(VALAC)
