@@ -187,6 +187,7 @@ SELECT codepoint, name FROM unicode_names WHERE name LIKE ? LIMIT 100;
 
             // Search entry
             entry = new Gtk.Entry ();
+            entry.set_editable (false);
             paned.pack_start (entry, false, false, 0);
 
             // Match results tree view
