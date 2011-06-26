@@ -1,0 +1,19 @@
+Source: ibus-gucharmap
+Section: utils
+Priority: optional
+Maintainer: IME Packaging Team <pkg-ime-devel@lists.alioth.debian.org>
+Build-Depends: debhelper (>= 7), libgucharmap-2-90-dev, libgtk-3-dev, libsqlite3-dev, libibus-dev, valac-0.12
+Standards-Version: 3.9.1
+Homepage: http://github.com/ueno/ibus-gucharmap
+DM-Upload-Allowed: yes
+
+Package: ibus-gucharmap
+Architecture: any
+Depends: ${python:Depends}, ${misc:Depends}, ibus (>= 1.2)
+Description: Unicode engine using Gucharmap for IBus
+ IBus is an Intelligent Input Bus. It is a new input framework for Linux
+ OS. It provides full featured and user friendly input method user interface.
+ It also may help developers to develop input method easily.
+ .
+ IBus-Gucharmap is an input method (IM) to input Unicode character,
+ based on IBus.
