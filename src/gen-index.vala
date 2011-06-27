@@ -17,16 +17,16 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 // 02110-1301, USA.
 namespace IBusGucharmap {
-	class IndexGenerator : Object {
+    class IndexGenerator : Object {
         private string filename;
 
-        const string schema = """
+        const string create_schema = """
 DROP TABLE IF EXISTS unicode_blocks;
 CREATE TABLE unicode_blocks (
     id INTEGER PRIMARY KEY ASC,
     name TEXT,
-	first_codepoint INTEGER,
-	last_codepoint INTEGER
+    first_codepoint INTEGER,
+    last_codepoint INTEGER
 );
 
 DROP INDEX IF EXISTS unicode_blocks_by_name;
@@ -179,7 +179,7 @@ CREATE INDEX unicode_names_by_name ON unicode_names (name);
                 return false;
             }
 
-            rc = database.exec (schema);
+            rc = database.exec (create_schema);
             if (rc != Sqlite.OK) {
                 stderr.printf ("can't create tables: %s\n", database.errmsg ());
                 return false;
@@ -203,10 +203,14 @@ CREATE INDEX unicode_names_by_name ON unicode_names (name);
 
             return true;
         }
-	}
+    }
 
     public static int main (string[] args) {
-        Gtk.init_check (ref args); // don't exit when display cannot be opened
+        // Don't exit when display cannot be opened
+        if (!Gtk.init_check (ref args)) {
+            warning ("Can't init GTK, but ignoring the error");
+        }
+            
 
         if (args.length < 2) {
             stderr.printf ("Usage: gen-index FILENAME\n");
