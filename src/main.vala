@@ -35,9 +35,8 @@ namespace IBusGucharmap {
             stderr.printf ("%s\n", e.message);
             return 1;
         }
-        Intl.bindtextdomain (Config.GETTEXT_PACKAGE, "");
+        Intl.bindtextdomain (Config.GETTEXT_PACKAGE, Config.LOCALEDIR);
         Intl.bind_textdomain_codeset (Config.GETTEXT_PACKAGE, "UTF-8");
-        Intl.textdomain (Config.GETTEXT_PACKAGE);
 
         Gtk.init (ref args);
         IBus.init ();

@@ -13,6 +13,7 @@ ibus_engine_gucharmap_VALAFLAGS = \
 ibus_engine_gucharmap_CFLAGS = \
 	$(GUCHARMAP_CFLAGS) $(IBUS_CFLAGS) $(SQLITE_CFLAGS) \
 	-DPACKAGE_DATADIR=\"$(pkgdatadir)\" \
+	-DLOCALEDIR=\"$(datadir)/locale\" \
 	-DUNICODENAMESFILE=\"$(unicodenames)\"
 ibus_engine_gucharmap_LDADD = \
 	$(GUCHARMAP_LIBS) $(IBUS_LIBS) $(SQLITE_LIBS)

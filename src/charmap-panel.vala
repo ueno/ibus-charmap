@@ -18,6 +18,21 @@
 // 02110-1301, USA.
 
 namespace IBusGucharmap {
+    private const string GUCHARMAP_DOMAIN = "gucharmap";
+
+    class ChapterCellRenderer : Gtk.CellRendererText {
+        private string _untranslated;
+        public string untranslated {
+            get {
+                return _untranslated;
+            }
+            set {
+                _untranslated = value;
+                text = dgettext (GUCHARMAP_DOMAIN, _untranslated);
+            }
+        }
+    }
+
     class CharmapPanel : Gtk.Box {
         private Gtk.ComboBox chapters;
         private Gucharmap.Chartable chartable;
@@ -85,9 +100,11 @@ namespace IBusGucharmap {
             model.set_sort_column_id (1, Gtk.SortType.ASCENDING);
             chapters = new Gtk.ComboBox.with_model (model);
             chapters.changed.connect (on_chapter_changed);
-            var renderer = new Gtk.CellRendererText ();
+
+            // Translate chapter names in Gucharmap translation domain
+            var renderer = new ChapterCellRenderer ();
             chapters.pack_start (renderer, true);
-            chapters.set_attributes (renderer, "text", 1);
+            chapters.set_attributes (renderer, "untranslated", 0);
             chapters.set_vexpand (false);
 
             paned.pack_start (chapters, false, false, 0);
