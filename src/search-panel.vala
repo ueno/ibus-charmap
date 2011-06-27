@@ -181,7 +181,9 @@ SELECT codepoint, name FROM unicode_names WHERE name LIKE ? LIMIT 100;
                                                 Config.UNICODENAMESFILE);
             int rc;
 
-            rc = Sqlite.Database.open (filename, out database);
+            rc = Sqlite.Database.open_v2 (filename,
+                                          out database,
+                                          Sqlite.OPEN_READONLY);
             if (rc != Sqlite.OK) {
                 stderr.printf ("can't open database\n");
                 assert_not_reached ();
