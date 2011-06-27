@@ -135,9 +135,15 @@ SELECT codepoint, name FROM unicode_names WHERE name LIKE ? LIMIT 100;
                 if (rc == Sqlite.ROW) {
                     if (!valid)
                         store.insert (out iter, n_matches++);
+                    string name = stmt.column_text (1);
+                    int index = name.casefold ().index_of (text.casefold ());
+                    string markup = Markup.printf_escaped ("%s<b>%s</b>%s",
+                                                           name.substring (0, index),
+                                                           name.substring (index, text.length),
+                                                           name.substring (index + text.length));
                     store.set (iter,
                                0, (uint)stmt.column_int64 (0),
-                               1, stmt.column_text (1));
+                               1, markup);
                     valid = store.iter_next (ref iter);
                 } else if (rc == Sqlite.DONE) {
                     break;
@@ -207,7 +213,7 @@ SELECT codepoint, name FROM unicode_names WHERE name LIKE ? LIMIT 100;
             renderer = new Gtk.CellRendererText ();
             matches.insert_column_with_attributes (-1,
                                                     "name",
-                                                    renderer, "text", 1);
+                                                    renderer, "markup", 1);
             matches.set_headers_visible (false);
             matches.row_activated.connect (on_row_activated);
 
