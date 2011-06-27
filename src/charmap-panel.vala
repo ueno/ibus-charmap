@@ -21,6 +21,8 @@ namespace IBusGucharmap {
     class CharmapPanel : Gtk.Box {
         private Gtk.ComboBox chapters;
         private Gucharmap.Chartable chartable;
+        private Gtk.Statusbar statusbar;
+        private uint statusbar_context_id;
 
         public void move_cursor (Gtk.MovementStep step, int count) {
             chartable.move_cursor (step, count);
@@ -65,6 +67,15 @@ namespace IBusGucharmap {
             activate_character (uc);
         }
 
+        private void on_chartable_notify_active_character (Object source,
+                                                           ParamSpec param)
+        {
+            statusbar.remove_all (statusbar_context_id);
+            unichar uc = chartable.get_active_character ();
+            string name = Gucharmap.get_unicode_name (uc);
+            statusbar.push (statusbar_context_id, "U+%X %s".printf (uc, name));
+        }
+
         public CharmapPanel () {
             var paned = new Gtk.VBox (false, 0);
 
@@ -81,6 +92,11 @@ namespace IBusGucharmap {
 
             paned.pack_start (chapters, false, false, 0);
 
+            // Statusbar
+            statusbar = new Gtk.Statusbar ();
+            statusbar_context_id = statusbar.get_context_id ("active char");
+            paned.pack_end (statusbar, false, false, 0);
+            
             // Chartable
             var scrolled_window = new Gtk.ScrolledWindow (null, null);
             scrolled_window.set_policy (Gtk.PolicyType.NEVER,
@@ -96,6 +112,7 @@ namespace IBusGucharmap {
             // Enable zooming for the case that the font is too small
             chartable.set_zoom_enabled (true);
             chartable.activate.connect (on_chartable_activate);
+            chartable.notify["active-character"].connect (on_chartable_notify_active_character);
             this.hide.connect (on_hide);
 
             scrolled_window.add (chartable);
