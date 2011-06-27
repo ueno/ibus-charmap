@@ -51,7 +51,7 @@ namespace IBusGucharmap {
         } else {
             var component = new IBus.Component (
                 "org.freedesktop.IBus.Gucharmap",
-                N_("Gucharmap"), "0.0.1", "GPL",
+                N_("Gucharmap"), Config.VERSION, "GPL",
                 "Daiki Ueno <ueno@unixuser.org>",
                 "http://code.google.com/p/ibus/",
                 "",
