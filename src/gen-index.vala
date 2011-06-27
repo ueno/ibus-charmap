@@ -206,7 +206,7 @@ CREATE INDEX unicode_names_by_name ON unicode_names (name);
 	}
 
     public static int main (string[] args) {
-        Gtk.init (ref args);
+        Gtk.init_check (ref args); // don't exit when display cannot be opened
 
         if (args.length < 2) {
             stderr.printf ("Usage: gen-index FILENAME\n");
