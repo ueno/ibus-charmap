@@ -129,7 +129,8 @@ namespace IBusGucharmap {
             // Enable zooming for the case that the font is too small
             chartable.set_zoom_enabled (true);
             chartable.activate.connect (on_chartable_activate);
-            chartable.notify["active-character"].connect (on_chartable_notify_active_character);
+            chartable.notify["active-character"].connect (
+                on_chartable_notify_active_character);
             this.hide.connect (on_hide);
 
             scrolled_window.add (chartable);

@@ -16,6 +16,7 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 // 02110-1301, USA.
+
 namespace IBusGucharmap {
     class IndexGenerator : Object {
         private string filename;
@@ -181,13 +182,15 @@ CREATE INDEX unicode_names_by_name ON unicode_names (name);
 
             rc = database.exec (create_schema);
             if (rc != Sqlite.OK) {
-                stderr.printf ("can't create tables: %s\n", database.errmsg ());
+                stderr.printf ("can't create tables: %s\n",
+                               database.errmsg ());
                 return false;
             }
 
             rc = database.exec ("BEGIN;");
             if (rc != Sqlite.OK) {
-                stderr.printf ("can't start transaction: %s\n", database.errmsg ());
+                stderr.printf ("can't start transaction: %s\n",
+                               database.errmsg ());
                 return false;
             }
 
@@ -197,7 +200,8 @@ CREATE INDEX unicode_names_by_name ON unicode_names (name);
 
             rc = database.exec ("COMMIT;");
             if (rc != Sqlite.OK) {
-                stderr.printf ("can't start transaction: %s\n", database.errmsg ());
+                stderr.printf ("can't complete transaction: %s\n",
+                               database.errmsg ());
                 return false;
             }
 

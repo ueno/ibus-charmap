@@ -205,10 +205,12 @@ namespace IBusGucharmap {
             window.set_size_request (INITIAL_WIDTH,
                                                   INITIAL_HEIGHT);
             charmap_panel = new CharmapPanel ();
-            charmap_panel.activate_character.connect (on_charmap_activate_character);
+            charmap_panel.activate_character.connect (
+                on_charmap_activate_character);
 
             search_panel = new SearchPanel ();
-            search_panel.activate_character.connect (on_search_activate_character);
+            search_panel.activate_character.connect (
+                on_search_activate_character);
 
             // The initial window state is charmap display.
             panel = charmap_panel;

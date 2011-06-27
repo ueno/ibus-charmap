@@ -137,10 +137,11 @@ SELECT codepoint, name FROM unicode_names WHERE name LIKE ? LIMIT 100;
                         store.insert (out iter, n_matches++);
                     string name = stmt.column_text (1);
                     int index = name.casefold ().index_of (text.casefold ());
-                    string markup = Markup.printf_escaped ("%s<b>%s</b>%s",
-                                                           name.substring (0, index),
-                                                           name.substring (index, text.length),
-                                                           name.substring (index + text.length));
+                    string markup = Markup.printf_escaped (
+                        "%s<b>%s</b>%s",
+                        name.substring (0, index),
+                        name.substring (index, text.length),
+                        name.substring (index + text.length));
                     store.set (iter,
                                0, (uint)stmt.column_int64 (0),
                                1, markup);
