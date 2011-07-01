@@ -89,8 +89,10 @@ AM_GNU_GETTEXT_VERSION(0.16.1)
 AC_CONFIG_FILES(po/Makefile.in
 Makefile
 ibus-gucharmap.spec
-src/Makefile
-src/gucharmap.xml.in
+vapi/Makefile
+tools/Makefile
+engine/Makefile
+engine/gucharmap.xml.in
 m4/Makefile
 )
 

@@ -19,7 +19,9 @@
 # Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 SUBDIRS = \
-	src \
+	vapi \
+	tools \
+	engine \
 	m4 \
 	po \
 	$(NULL)

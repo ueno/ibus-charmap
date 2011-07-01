@@ -1,2 +1,5 @@
-src/engine.vala
-src/charmap-panel.vala
+engine/engine.vala
+engine/main.vala
+engine/charmap-panel.vala
+engine/search-panel.vala
+
