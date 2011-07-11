@@ -19,11 +19,16 @@ ibus_engine_gucharmap_LDADD = \
 	$(GUCHARMAP_LIBS) $(IBUS_LIBS) $(SQLITE_LIBS)
 
 ibus_engine_gucharmap_SOURCES = \
-	config-cache.vala \
 	charmap-panel.vala \
 	search-panel.vala \
 	engine.vala \
 	engine-main.vala
+
+if ENABLE_IBUS_1_4
+ibus_engine_gucharmap_SOURCES += config-cache.vala
+else
+ibus_engine_gucharmap_SOURCES += config-cache-dummy.vala
+endif
 
 ibus_setup_gucharmap_VALAFLAGS = \
 	--vapidir=$(top_srcdir)/vapi \
@@ -42,9 +47,14 @@ ibus_setup_gucharmap_LDADD = \
 	$(GUCHARMAP_LIBS) $(IBUS_LIBS) $(SQLITE_LIBS)
 
 ibus_setup_gucharmap_SOURCES = \
-	config-cache.vala \
 	setup.vala \
 	setup-main.vala
+
+if ENABLE_IBUS_1_4
+ibus_setup_gucharmap_SOURCES += config-cache.vala
+else
+ibus_setup_gucharmap_SOURCES += config-cache-dummy.vala
+endif
 
 component_DATA = gucharmap.xml
 componentdir = $(datadir)/ibus/component
@@ -65,4 +75,4 @@ unicodenames.sqlite3: | $(top_builddir)/tools/gen-index
 
 CLEANFILES = *.[ch] *.stamp gucharmap.xml
 DISTCLEANFILES = gucharmap.xml.in $(unicodenames)
-EXTRA_DIST = gucharmap.xml.in.in
+EXTRA_DIST = gucharmap.xml.in.in config-cache.vala config-cache-dummy.vala

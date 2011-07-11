@@ -56,6 +56,16 @@ PKG_CHECK_MODULES(IBUS, [
     ibus-1.0
 ])
 
+save_CFLAGS="$CFLAGS"
+CFLAGS="$CFLAGS $IBUS_CFLAGS"
+AC_TRY_COMPILE([#include <ibus.h>], [
+#if !IBUS_CHECK_VERSION(1,3,99)
+#error "ibus is older"
+#endif],
+  has_ibus_1_4=yes)
+CFLAGS="$save_CFLAGS"
+AM_CONDITIONAL([ENABLE_IBUS_1_4], [test x$has_ibus_1_4 = xyes])
+
 # check gucharmap
 PKG_CHECK_MODULES(GUCHARMAP, [
     gucharmap-2.90
