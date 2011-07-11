@@ -28,7 +28,7 @@ namespace IBusGucharmap {
                 return _use_system_font;
             }
             set {
-				_use_system_font = value;
+                _use_system_font = value;
             }
         }
 
@@ -48,7 +48,7 @@ namespace IBusGucharmap {
                 return _number_of_matches;
             }
             set {
-				_number_of_matches = value;
+                _number_of_matches = value;
             }
         }
 
@@ -56,12 +56,12 @@ namespace IBusGucharmap {
             this.config = config;
         }
 
-		public void load () {
-			warning ("loading config with ibus 1.3 is not supported");
-		}
+        public void load () {
+            warning ("loading config with ibus 1.3 is not supported");
+        }
 
-		public void save () {
-			warning ("saving config with ibus 1.3 is not supported");
-		}
+        public void save () {
+            warning ("saving config with ibus 1.3 is not supported");
+        }
     }
 }
