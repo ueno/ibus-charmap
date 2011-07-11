@@ -82,7 +82,8 @@ namespace IBusGucharmap {
                                                 uint prop_state)
         {
             if (prop_name == "setup")
-                Process.spawn_command_line_async ("%s/ibus-setup-gucharmap".printf (Config.LIBEXECDIR));
+                Process.spawn_command_line_async (
+                    "%s/ibus-setup-gucharmap".printf (Config.LIBEXECDIR));
         }
 
         private void update_panel () {

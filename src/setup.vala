@@ -18,46 +18,51 @@
 // 02110-1301, USA.
 
 namespace IBusGucharmap {
-	class Setup : Object {
+    class Setup : Object {
         private ConfigCache config;
-		private Gtk.Dialog dialog;
-		private Gtk.CheckButton use_system_font_checkbutton;
-		private Gtk.FontButton fontbutton;
-		private Gtk.SpinButton number_of_matches_spinbutton;
+        private Gtk.Dialog dialog;
+        private Gtk.CheckButton use_system_font_checkbutton;
+        private Gtk.FontButton fontbutton;
+        private Gtk.SpinButton number_of_matches_spinbutton;
 
-		public Setup (IBus.Config _config) {
-			var builder = new Gtk.Builder ();
-			builder.set_translation_domain ("ibus-gucharmap");
-			builder.add_from_file (Config.SETUPDIR +
-								   "/ibus-gucharmap-preferences.ui");
+        public Setup (IBus.Config _config) {
+            var builder = new Gtk.Builder ();
+            builder.set_translation_domain ("ibus-gucharmap");
+            builder.add_from_file (Config.SETUPDIR +
+                                   "/ibus-gucharmap-preferences.ui");
 
-			// Map widgets defined in ibus-gucharmap-preferences.ui
-			// into instance variables.
-			var object = builder.get_object ("dialog");
-			dialog = (Gtk.Dialog)object;
-			object = builder.get_object ("fontbutton");
-			fontbutton = (Gtk.FontButton)object;
-			object = builder.get_object ("use_system_font_checkbutton");
-			use_system_font_checkbutton = (Gtk.CheckButton)object;
-			object = builder.get_object ("number_of_matches_spinbutton");
-			number_of_matches_spinbutton = (Gtk.SpinButton)object;
+            // Map widgets defined in ibus-gucharmap-preferences.ui
+            // into instance variables.
+            var object = builder.get_object ("dialog");
+            dialog = (Gtk.Dialog)object;
+            object = builder.get_object ("fontbutton");
+            fontbutton = (Gtk.FontButton)object;
+            object = builder.get_object ("use_system_font_checkbutton");
+            use_system_font_checkbutton = (Gtk.CheckButton)object;
+            object = builder.get_object ("number_of_matches_spinbutton");
+            number_of_matches_spinbutton = (Gtk.SpinButton)object;
 
-			use_system_font_checkbutton.toggled.connect ((checkbutton) => {
-					fontbutton.set_sensitive (!checkbutton.active);
-				});
+            use_system_font_checkbutton.toggled.connect ((checkbutton) => {
+                    fontbutton.set_sensitive (!checkbutton.active);
+                });
 
             config = new ConfigCache (_config);
+            load_config ();
+            config.changed.connect (load_config);
+        }
+
+        private void load_config () {
             use_system_font_checkbutton.set_active (config.use_system_font);
             fontbutton.set_font_name (config.font);
             number_of_matches_spinbutton.set_value (config.number_of_matches);
-		}
+        }
 
-		public void run () {
-			dialog.run ();
+        public void run () {
+            dialog.run ();
             config.use_system_font = use_system_font_checkbutton.active;
             config.font = fontbutton.font_name;
-            config.number_of_matches = (uint32)number_of_matches_spinbutton.value;
+            config.number_of_matches = (int32)number_of_matches_spinbutton.value;
             config.save ();
-		}
-	}
+        }
+    }
 }
