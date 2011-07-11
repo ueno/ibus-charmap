@@ -8,4 +8,6 @@ namespace Config
   public const string VERSION;
   public const string UNICODENAMESFILE;
   public const string LOCALEDIR;
+  public const string SETUPDIR;
+  public const string LIBEXECDIR;
 }

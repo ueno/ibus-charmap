@@ -21,7 +21,7 @@
 SUBDIRS = \
 	vapi \
 	tools \
-	engine \
+	src \
 	m4 \
 	po \
 	$(NULL)

@@ -122,10 +122,15 @@ namespace IBusGucharmap {
 
             chartable = new Gucharmap.Chartable ();
 
-            // Use normal size GTK font
-            var style_context = chartable.get_style_context ();
-            var font_desc = style_context.get_font (Gtk.StateFlags.NORMAL);
+            Pango.FontDescription font_desc;
+            if (config.use_system_font) {
+                // Use normal size GTK font
+                var style_context = chartable.get_style_context ();
+                font_desc = style_context.get_font (Gtk.StateFlags.NORMAL);
+            } else
+                font_desc = Pango.FontDescription.from_string (config.font);
             chartable.set_font_desc (font_desc);
+
             // Enable zooming for the case that the font is too small
             chartable.set_zoom_enabled (true);
             chartable.activate.connect (on_chartable_activate);

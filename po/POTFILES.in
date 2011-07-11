@@ -1,5 +1,8 @@
-engine/engine.vala
-engine/main.vala
-engine/charmap-panel.vala
-engine/search-panel.vala
+src/engine.vala
+src/engine-main.vala
+src/charmap-panel.vala
+src/search-panel.vala
+src/setup.vala
+src/setup-main.vala
+src/config-cache.vala
 

@@ -91,8 +91,8 @@ Makefile
 ibus-gucharmap.spec
 vapi/Makefile
 tools/Makefile
-engine/Makefile
-engine/gucharmap.xml.in
+src/Makefile
+src/gucharmap.xml.in
 m4/Makefile
 )
 

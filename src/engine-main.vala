@@ -19,6 +19,7 @@
 
 namespace IBusGucharmap {
     static bool ibus;
+    static ConfigCache config;
 
     const OptionEntry[] options = {
         {"ibus", 'i', 0, OptionArg.NONE, ref ibus,
@@ -42,6 +43,7 @@ namespace IBusGucharmap {
         IBus.init ();
         var bus = new IBus.Bus ();
         bus.disconnected.connect (() => { IBus.quit (); });
+        config = new ConfigCache (bus.get_config ());
 
         var factory = new IBus.Factory (bus.get_connection());
         factory.add_engine ("gucharmap", typeof(IBusGucharmap.Engine));

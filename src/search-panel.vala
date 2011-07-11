@@ -108,7 +108,7 @@ namespace IBusGucharmap {
             
             Sqlite.Statement stmt;
             string sql = """
-SELECT codepoint, name FROM unicode_names WHERE name LIKE ? LIMIT 100;
+SELECT codepoint, name FROM unicode_names WHERE name LIKE ? LIMIT ?;
 """;
             int rc;
 
@@ -120,6 +120,13 @@ SELECT codepoint, name FROM unicode_names WHERE name LIKE ? LIMIT 100;
             }
 
             rc = stmt.bind_text (1, "%" + text.replace ("%", "%%") + "%");
+            if (rc != Sqlite.OK) {
+                stderr.printf ("can't bind values: %s\n",
+                               database.errmsg ());
+                return false;
+            }
+
+            rc = stmt.bind_int64 (2, (int)config.number_of_matches);
             if (rc != Sqlite.OK) {
                 stderr.printf ("can't bind values: %s\n",
                                database.errmsg ());

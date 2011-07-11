@@ -21,6 +21,8 @@ namespace IBusGucharmap {
     class Engine : IBus.Engine {
         private static GLib.List<Engine> instances;
 
+        private IBus.PropList prop_list;
+
         private Gtk.Window window;
         private int saved_x;
         private int saved_y;
@@ -68,11 +70,19 @@ namespace IBusGucharmap {
         }
         
         public override void focus_in () {
+            register_properties (prop_list);
             show_window ();
         }
 
         public override void focus_out () {
             hide_window ();
+        }
+
+        public override void property_activate (string prop_name,
+                                                uint prop_state)
+        {
+            if (prop_name == "setup")
+                Process.spawn_command_line_async ("%s/ibus-setup-gucharmap".printf (Config.LIBEXECDIR));
         }
 
         private void update_panel () {
@@ -228,6 +238,18 @@ namespace IBusGucharmap {
                 engine.disable ();
             }
             instances.append (this);
+
+            prop_list = new IBus.PropList ();
+            var prop = new IBus.Property ("setup",
+                                          IBus.PropType.NORMAL,
+                                          new IBus.Text.from_string ("Setup"),
+                                          "gtk-preferences",
+                                          new IBus.Text.from_string ("Configure Gucharmap engine"),
+                                          true,
+                                          true,
+                                          IBus.PropState.UNCHECKED,
+                                          null);
+            prop_list.append (prop);
         }
 
         private void show_window () {
