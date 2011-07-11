@@ -16,4 +16,4 @@ gen_index_LDADD = \
 gen_index_SOURCES = \
 	gen-index.vala
 
-DISTCLEANFILES = gucharmap.xml.in $(unicodenames)
+CLEANFILES = *.[ch] *.stamp

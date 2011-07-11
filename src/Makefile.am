@@ -63,6 +63,6 @@ dist_pkgdata_DATA = $(unicodenames)
 unicodenames.sqlite3: | $(top_builddir)/tools/gen-index
 	$(AM_V_GEN) $(top_builddir)/tools/gen-index $@
 
-CLEANFILES = *.[ch] gucharmap.xml
+CLEANFILES = *.[ch] *.stamp gucharmap.xml
 DISTCLEANFILES = gucharmap.xml.in $(unicodenames)
 EXTRA_DIST = gucharmap.xml.in.in
