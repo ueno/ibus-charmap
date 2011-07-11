@@ -73,6 +73,13 @@ dist_pkgdata_DATA = $(unicodenames)
 unicodenames.sqlite3: | $(top_builddir)/tools/gen-index
 	$(AM_V_GEN) $(top_builddir)/tools/gen-index $@
 
+config-cache-dummy.c: config-cache-dummy.vala
+	$(VALAC) -c -C \
+	--vapidir=$(top_srcdir)/vapi \
+	--pkg gio-2.0 --pkg gobject-2.0 --pkg ibus-1.0 \
+	$(VALAFLAGS) \
+	$<
+
 CLEANFILES = *.[ch] *.stamp gucharmap.xml
 DISTCLEANFILES = gucharmap.xml.in $(unicodenames)
 EXTRA_DIST = gucharmap.xml.in.in config-cache.vala config-cache-dummy.vala
