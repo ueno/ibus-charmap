@@ -87,7 +87,8 @@ namespace IBusGucharmap {
         {
             if (prop_name == "setup")
                 Process.spawn_command_line_async (
-                    "%s/ibus-setup-gucharmap".printf (Config.LIBEXECDIR));
+                    Path.build_filename (Config.LIBEXECDIR,
+                                         "ibus-setup-gucharmap"));
         }
 
         private void update_panel () {

@@ -77,8 +77,9 @@ namespace IBusGucharmap {
         public Setup () {
             var builder = new Gtk.Builder ();
             builder.set_translation_domain ("ibus-gucharmap");
-            builder.add_from_file (Config.SETUPDIR +
-                                   "/ibus-gucharmap-preferences.ui");
+            builder.add_from_file (
+                Path.build_filename (Config.SETUPDIR,
+                                     "ibus-gucharmap-preferences.ui"));
 
             // Map widgets defined in ibus-gucharmap-preferences.ui
             // into instance variables.
