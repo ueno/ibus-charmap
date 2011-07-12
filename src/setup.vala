@@ -23,6 +23,10 @@ namespace IBusGucharmap {
         private Gtk.CheckButton use_system_font_checkbutton;
         private Gtk.FontButton fontbutton;
         private Gtk.SpinButton number_of_matches_spinbutton;
+        private Gtk.Entry select_chapter_entry;
+        private Gtk.Button select_chapter_button;
+        private Gtk.Entry commit_character_entry;
+        private Gtk.Button commit_character_button;
         private Settings settings;
 
         public bool use_system_font {
@@ -52,6 +56,24 @@ namespace IBusGucharmap {
             }
         }
 
+        public string select_chapter_shortcut {
+            get {
+                return select_chapter_entry.get_text ();
+            }
+            set {
+                select_chapter_entry.set_text (value);
+            }
+        }
+
+        public string commit_character_shortcut {
+            get {
+                return commit_character_entry.get_text ();
+            }
+            set {
+                commit_character_entry.set_text (value);
+            }
+        }
+
         public Setup () {
             var builder = new Gtk.Builder ();
             builder.set_translation_domain ("ibus-gucharmap");
@@ -68,9 +90,32 @@ namespace IBusGucharmap {
             use_system_font_checkbutton = (Gtk.CheckButton)object;
             object = builder.get_object ("number_of_matches_spinbutton");
             number_of_matches_spinbutton = (Gtk.SpinButton)object;
+            object = builder.get_object ("select_chapter_entry");
+            select_chapter_entry = (Gtk.Entry)object;
+            object = builder.get_object ("select_chapter_button");
+            select_chapter_button = (Gtk.Button)object;
+            object = builder.get_object ("commit_character_entry");
+            commit_character_entry = (Gtk.Entry)object;
+            object = builder.get_object ("commit_character_button");
+            commit_character_button = (Gtk.Button)object;
 
+            // set signal handlers
             use_system_font_checkbutton.toggled.connect ((checkbutton) => {
                     fontbutton.set_sensitive (!checkbutton.active);
+                });
+            select_chapter_button.clicked.connect ((button) => {
+                    var dialog = new KeyCaptureDialog ("chapter selection",
+                                                       dialog);
+                    if (dialog.run () == Gtk.ResponseType.OK)
+                        select_chapter_entry.set_text (dialog.key);
+                    dialog.destroy ();
+                });
+            commit_character_button.clicked.connect ((button) => {
+                    var dialog = new KeyCaptureDialog ("commit character",
+                                                       dialog);
+                    if (dialog.run () == Gtk.ResponseType.OK)
+                        commit_character_entry.set_text (dialog.key);
+                    dialog.destroy ();
                 });
 
             // bind gsettings values to properties
@@ -84,12 +129,20 @@ namespace IBusGucharmap {
             settings.bind ("number-of-matches",
                            this, "number-of-matches",
                            SettingsBindFlags.DEFAULT);
+            settings.bind ("select-chapter-shortcut",
+                           this, "select-chapter-shortcut",
+                           SettingsBindFlags.DEFAULT);
+            settings.bind ("commit-character-shortcut",
+                           this, "commit-character-shortcut",
+                           SettingsBindFlags.DEFAULT);
         }
 
         private void save_settings () {
             use_system_font = use_system_font_checkbutton.active;
             font = fontbutton.font_name;
             number_of_matches = (int)number_of_matches_spinbutton.value;
+            select_chapter_shortcut = select_chapter_entry.get_text ();
+            commit_character_shortcut = commit_character_entry.get_text ();
         }
 
         public void run () {

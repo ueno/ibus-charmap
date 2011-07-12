@@ -46,6 +46,7 @@ ibus_setup_gucharmap_LDADD = \
 	$(GUCHARMAP_LIBS) $(IBUS_LIBS) $(SQLITE_LIBS)
 
 ibus_setup_gucharmap_SOURCES = \
+	key-capture-dialog.vala \
 	setup.vala \
 	setup-main.vala
 

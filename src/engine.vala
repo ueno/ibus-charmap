@@ -20,6 +20,10 @@
 namespace IBusGucharmap {
     class Engine : IBus.Engine {
         private static GLib.List<Engine> instances;
+        private Settings settings;
+
+        public string select_chapter_shortcut { get; set; }
+        public string commit_character_shortcut { get; set; }
 
         private IBus.PropList prop_list;
 
@@ -99,10 +103,35 @@ namespace IBusGucharmap {
             return 0x20 <= keyval && keyval <= 0x7E;
         }
 
+        private bool parse_keystr (string keystr,
+                                   out uint keyval,
+                                   out uint state)
+        {
+            var buffer = new StringBuilder (keystr);
+            state = 0;
+            if (buffer.str.has_prefix ("Control+")) {
+                state |= IBus.ModifierType.CONTROL_MASK;
+                buffer.erase (0, "Control+".length);
+            }
+            if (buffer.str.has_prefix ("Alt+")) {
+                state |= IBus.ModifierType.MOD1_MASK;
+                buffer.erase (0, "Alt+".length);
+            }
+            if (buffer.str.has_prefix ("Shift+")) {
+                state |= IBus.ModifierType.SHIFT_MASK;
+                buffer.erase (0, "Shift+".length);
+            }
+            keyval = IBus.keyval_from_name (buffer.str);
+            return true;
+        }
+
         private bool process_charmap_key_event (uint keyval,
                                                 uint keycode,
                                                 uint state)
         {
+            uint shortcut_keyval;
+            uint shortcut_state;
+
             // ignore release event
             if ((IBus.ModifierType.RELEASE_MASK & state) != 0)
                 return false;
@@ -116,14 +145,19 @@ namespace IBusGucharmap {
             }
 
             // process return - activate current character in chartable
-            if (keyval == IBus.Return && state == 0) {
+            parse_keystr (commit_character_shortcut,
+                          out shortcut_keyval,
+                          out shortcut_state);
+            if (keyval == shortcut_keyval && state == shortcut_state) {
                 charmap_panel.activate_selected ();
                 return true;
             }
 
             // process alt+Down to popup the chapters combobox
-            if ((IBus.ModifierType.MOD1_MASK & state) != 0 &&
-                (keyval == IBus.Down || keyval == IBus.KP_Down)) {
+            parse_keystr (select_chapter_shortcut,
+                          out shortcut_keyval,
+                          out shortcut_state);
+            if ((shortcut_state & state) != 0 && keyval == shortcut_keyval) {
                 charmap_panel.popup_chapters ();
                 return true;
             }
@@ -251,6 +285,15 @@ namespace IBusGucharmap {
                                           IBus.PropState.UNCHECKED,
                                           null);
             prop_list.append (prop);
+
+            // bind gsettings values to properties
+            settings = new Settings ("org.freedesktop.ibus.engines.gucharmap");
+            settings.bind ("select-chapter-shortcut",
+                           this, "select-chapter-shortcut",
+                           SettingsBindFlags.GET);
+            settings.bind ("commit-character-shortcut",
+                           this, "commit-character-shortcut",
+                           SettingsBindFlags.GET);
         }
 
         private void show_window () {

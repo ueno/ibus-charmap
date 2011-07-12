@@ -22,7 +22,6 @@ namespace IBusGucharmap {
 		Gtk.init (ref args);
 		IBus.init ();
 
-		var bus = new IBus.Bus ();
 		var setup = new Setup ();
 
 		setup.run ();
