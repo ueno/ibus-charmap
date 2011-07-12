@@ -3,7 +3,7 @@ AM_CPPFLAGS = -include $(CONFIG_HEADER)
 
 @GSETTINGS_RULES@
 @INTLTOOL_XML_NOMERGE_RULE@
-gsettings_schemas_in_files = org.freedesktop.ibus.engines.gucharmap.gschema.xml.in
+gsettings_schemas_in_files = org.freedesktop.ibus.engine.gucharmap.gschema.xml.in
 gsettings_SCHEMAS = $(gsettings_schemas_in_files:.gschema.xml.in=.gschema.xml)
 
 libexec_PROGRAMS = ibus-engine-gucharmap ibus-setup-gucharmap

@@ -29,7 +29,3 @@ Here are key bindings:
 - Page_Up/Page_Down: move the current cell in charmap across pages
 - Home/End: move to the first/end cell in charmap
 - any ASCII letter: start search by Unicode name
-
-* TODO
-
-- config
