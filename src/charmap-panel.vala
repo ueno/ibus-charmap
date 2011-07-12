@@ -115,14 +115,17 @@ namespace IBusGucharmap {
         }
 
         private void set_chartable_font () {
-            Pango.FontDescription font_desc;
+            Pango.FontDescription font_desc = null;
             if (use_system_font) {
                 // Use normal size GTK font
                 var style_context = chartable.get_style_context ();
                 font_desc = style_context.get_font (Gtk.StateFlags.NORMAL);
-            } else
+            } else if (font != null)
+                // maybe font is not set when the first time
+                // use-system-font is read
                 font_desc = Pango.FontDescription.from_string (font);
-            chartable.set_font_desc (font_desc);
+            if (font_desc != null)
+                chartable.set_font_desc (font_desc);
         }
 
         public CharmapPanel () {
