@@ -73,6 +73,8 @@ dist_pkgdata_DATA = $(unicodenames)
 unicodenames.sqlite3: | $(top_builddir)/tools/gen-index
 	$(AM_V_GEN) $(top_builddir)/tools/gen-index $@
 
+# work around for "make dist", so that it does not fail when
+# attempting to include *.c
 config-cache-dummy.c: config-cache-dummy.vala
 	$(VALAC) -c -C \
 	--vapidir=$(top_srcdir)/vapi \
