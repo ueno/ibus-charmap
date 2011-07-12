@@ -23,8 +23,7 @@ namespace IBusGucharmap {
 		IBus.init ();
 
 		var bus = new IBus.Bus ();
-		var config = bus.get_config ();
-		var setup = new Setup (config);
+		var setup = new Setup ();
 
 		setup.run ();
 		return 0;

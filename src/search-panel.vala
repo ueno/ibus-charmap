@@ -38,6 +38,18 @@ namespace IBusGucharmap {
         private static Sqlite.Database database;
         private uint idle_search_id = 0;
 
+        private Settings settings;
+
+        private int _number_of_matches;
+        public int number_of_matches {
+            get {
+                return _number_of_matches;
+            }
+            set {
+                _number_of_matches = value;
+            }
+        }
+
         public signal void activate_character (unichar uc);
 
         public void append_c (char c) {
@@ -126,7 +138,7 @@ SELECT codepoint, name FROM unicode_names WHERE name LIKE ? LIMIT ?;
                 return false;
             }
 
-            rc = stmt.bind_int64 (2, (int)config.number_of_matches);
+            rc = stmt.bind_int64 (2, number_of_matches);
             if (rc != Sqlite.OK) {
                 stderr.printf ("can't bind values: %s\n",
                                database.errmsg ());
@@ -236,6 +248,12 @@ SELECT codepoint, name FROM unicode_names WHERE name LIKE ? LIMIT ?;
             paned.show_all ();
 
             this.pack_start (paned, true, true, 0);
+
+            // bind gsettings values to properties
+            settings = new Settings ("org.freedesktop.ibus.engines.gucharmap");
+            settings.bind ("number-of-matches",
+                           this, "number-of-matches",
+                           SettingsBindFlags.GET);
         }
     }
 }

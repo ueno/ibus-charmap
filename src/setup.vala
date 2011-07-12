@@ -19,13 +19,40 @@
 
 namespace IBusGucharmap {
     class Setup : Object {
-        private ConfigCache config;
         private Gtk.Dialog dialog;
         private Gtk.CheckButton use_system_font_checkbutton;
         private Gtk.FontButton fontbutton;
         private Gtk.SpinButton number_of_matches_spinbutton;
+        private Settings settings;
 
-        public Setup (IBus.Config _config) {
+        public bool use_system_font {
+            get {
+                return use_system_font_checkbutton.get_active ();
+            }
+            set {
+                use_system_font_checkbutton.set_active (value);
+            }
+        }
+
+        public string font {
+            get {
+                return fontbutton.get_font_name ();
+            }
+            set {
+                fontbutton.set_font_name (value);
+            }
+        }
+
+        public int number_of_matches {
+            get {
+                return (int)number_of_matches_spinbutton.value;
+            }
+            set {
+                number_of_matches_spinbutton.set_value (value);
+            }
+        }
+
+        public Setup () {
             var builder = new Gtk.Builder ();
             builder.set_translation_domain ("ibus-gucharmap");
             builder.add_from_file (Config.SETUPDIR +
@@ -46,23 +73,28 @@ namespace IBusGucharmap {
                     fontbutton.set_sensitive (!checkbutton.active);
                 });
 
-            config = new ConfigCache (_config);
-            load_config ();
-            config.changed.connect (load_config);
+            // bind gsettings values to properties
+            settings = new Settings ("org.freedesktop.ibus.engines.gucharmap");
+            settings.bind ("use-system-font",
+                           this, "use-system-font",
+                           SettingsBindFlags.DEFAULT);
+            settings.bind ("font",
+                           this, "font",
+                           SettingsBindFlags.DEFAULT);
+            settings.bind ("number-of-matches",
+                           this, "number-of-matches",
+                           SettingsBindFlags.DEFAULT);
         }
 
-        private void load_config () {
-            use_system_font_checkbutton.set_active (config.use_system_font);
-            fontbutton.set_font_name (config.font);
-            number_of_matches_spinbutton.set_value (config.number_of_matches);
+        private void save_settings () {
+            use_system_font = use_system_font_checkbutton.active;
+            font = fontbutton.font_name;
+            number_of_matches = (int)number_of_matches_spinbutton.value;
         }
 
         public void run () {
             dialog.run ();
-            config.use_system_font = use_system_font_checkbutton.active;
-            config.font = fontbutton.font_name;
-            config.number_of_matches = (int32)number_of_matches_spinbutton.value;
-            config.save ();
+            save_settings ();
         }
     }
 }

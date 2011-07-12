@@ -38,6 +38,29 @@ namespace IBusGucharmap {
         private Gucharmap.Chartable chartable;
         private Gtk.Statusbar statusbar;
         private uint statusbar_context_id;
+        private Settings settings;
+
+        private bool _use_system_font;
+        public bool use_system_font {
+            get {
+                return _use_system_font;
+            }
+            set {
+                _use_system_font = value;
+                set_chartable_font ();
+            }
+        }
+
+        private string _font;
+        public string font {
+            get {
+                return _font;
+            }
+            set {
+                _font = value;
+                set_chartable_font ();
+            }
+        }
 
         public void move_cursor (Gtk.MovementStep step, int count) {
             chartable.move_cursor (step, count);
@@ -91,6 +114,17 @@ namespace IBusGucharmap {
             statusbar.push (statusbar_context_id, "U+%X %s".printf (uc, name));
         }
 
+        private void set_chartable_font () {
+            Pango.FontDescription font_desc;
+            if (use_system_font) {
+                // Use normal size GTK font
+                var style_context = chartable.get_style_context ();
+                font_desc = style_context.get_font (Gtk.StateFlags.NORMAL);
+            } else
+                font_desc = Pango.FontDescription.from_string (font);
+            chartable.set_font_desc (font_desc);
+        }
+
         public CharmapPanel () {
             var paned = new Gtk.VBox (false, 0);
 
@@ -121,16 +155,6 @@ namespace IBusGucharmap {
             scrolled_window.set_shadow_type(Gtk.ShadowType.ETCHED_IN);
 
             chartable = new Gucharmap.Chartable ();
-
-            Pango.FontDescription font_desc;
-            if (config.use_system_font) {
-                // Use normal size GTK font
-                var style_context = chartable.get_style_context ();
-                font_desc = style_context.get_font (Gtk.StateFlags.NORMAL);
-            } else
-                font_desc = Pango.FontDescription.from_string (config.font);
-            chartable.set_font_desc (font_desc);
-
             // Enable zooming for the case that the font is too small
             chartable.set_zoom_enabled (true);
             chartable.activate.connect (on_chartable_activate);
@@ -147,6 +171,15 @@ namespace IBusGucharmap {
             paned.show_all ();
 
             this.pack_start (paned, true, true, 0);
+
+            // bind gsettings values to properties
+            settings = new Settings ("org.freedesktop.ibus.engines.gucharmap");
+            settings.bind ("use-system-font",
+                           this, "use-system-font",
+                           SettingsBindFlags.GET);
+            settings.bind ("font",
+                           this, "font",
+                           SettingsBindFlags.GET);
         }
     }
 }

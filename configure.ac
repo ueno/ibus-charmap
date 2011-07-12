@@ -56,16 +56,6 @@ PKG_CHECK_MODULES(IBUS, [
     ibus-1.0
 ])
 
-save_CFLAGS="$CFLAGS"
-CFLAGS="$CFLAGS $IBUS_CFLAGS"
-AC_TRY_COMPILE([#include <ibus.h>], [
-#if !IBUS_CHECK_VERSION(1,3,99)
-#error "ibus is older"
-#endif],
-  has_ibus_1_4=yes)
-CFLAGS="$save_CFLAGS"
-AM_CONDITIONAL([ENABLE_IBUS_1_4], [test x$has_ibus_1_4 = xyes])
-
 # check gucharmap
 PKG_CHECK_MODULES(GUCHARMAP, [
     gucharmap-2.90
@@ -75,6 +65,11 @@ PKG_CHECK_MODULES(GUCHARMAP, [
 PKG_CHECK_MODULES(SQLITE, [
     sqlite3
 ])
+
+# check glib2 and intltool for gsettings
+AM_PATH_GLIB_2_0
+IT_PROG_INTLTOOL([0.35.0])
+GLIB_GSETTINGS
 
 # check vala
 AM_PROG_VALAC([0.12.0])

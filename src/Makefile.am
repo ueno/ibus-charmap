@@ -1,6 +1,11 @@
 # force include config.h before gi18n.h.
 AM_CPPFLAGS = -include $(CONFIG_HEADER)
 
+@GSETTINGS_RULES@
+@INTLTOOL_XML_NOMERGE_RULE@
+gsettings_schemas_in_files = org.freedesktop.ibus.engines.gucharmap.gschema.xml.in
+gsettings_SCHEMAS = $(gsettings_schemas_in_files:.gschema.xml.in=.gschema.xml)
+
 libexec_PROGRAMS = ibus-engine-gucharmap ibus-setup-gucharmap
 
 ibus_engine_gucharmap_VALAFLAGS = \
@@ -24,12 +29,6 @@ ibus_engine_gucharmap_SOURCES = \
 	engine.vala \
 	engine-main.vala
 
-if ENABLE_IBUS_1_4
-ibus_engine_gucharmap_SOURCES += config-cache.vala
-else
-ibus_engine_gucharmap_SOURCES += config-cache-dummy.vala
-endif
-
 ibus_setup_gucharmap_VALAFLAGS = \
 	--vapidir=$(top_srcdir)/vapi \
 	--pkg config --pkg gtk+-3.0 --pkg ibus-1.0 \
@@ -49,12 +48,6 @@ ibus_setup_gucharmap_LDADD = \
 ibus_setup_gucharmap_SOURCES = \
 	setup.vala \
 	setup-main.vala
-
-if ENABLE_IBUS_1_4
-ibus_setup_gucharmap_SOURCES += config-cache.vala
-else
-ibus_setup_gucharmap_SOURCES += config-cache-dummy.vala
-endif
 
 component_DATA = gucharmap.xml
 componentdir = $(datadir)/ibus/component
@@ -82,6 +75,6 @@ config-cache-dummy.c: config-cache-dummy.vala
 	$(VALAFLAGS) \
 	$<
 
-CLEANFILES = *.[ch] *.stamp gucharmap.xml
+CLEANFILES = *.[ch] *.stamp gucharmap.xml $(gsettings_SCHEMAS)
 DISTCLEANFILES = gucharmap.xml.in $(unicodenames)
-EXTRA_DIST = gucharmap.xml.in.in config-cache.vala config-cache-dummy.vala
+EXTRA_DIST = gucharmap.xml.in.in $(gsettings_schemas_in_files)
