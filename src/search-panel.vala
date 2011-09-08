@@ -17,7 +17,7 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 // 02110-1301, USA.
 
-namespace IBusGucharmap {
+namespace IBusCharmap {
     class CharacterRenderer : Gtk.CellRendererText {
         private unichar _codepoint;
         public unichar codepoint {
@@ -31,50 +31,29 @@ namespace IBusGucharmap {
         }
     }
 
-    class SearchPanel : Gtk.Box {
+    class SearchPanel : Gtk.Box, Selectable {
         private Gtk.Entry entry;
         private Gtk.TreeView matches;
 
         private static Sqlite.Database database;
         private uint idle_search_id = 0;
 
-        private Settings settings;
-
-        private int _number_of_matches;
-        public int number_of_matches {
-            get {
-                return _number_of_matches;
-            }
-            set {
-                _number_of_matches = value;
-            }
-        }
-
         public signal void activate_character (unichar uc);
 
-        public void append_c (char c) {
-            var text = entry.get_text ();
-            StringBuilder builder = new StringBuilder (text);
-            builder.append_c (c);
-            entry.set_text (builder.str);
-            update_matches ();
+        public void start_search (string name, uint max_matches) {
+            cancel_search ();
+            idle_search_id = Idle.add (() => {
+                    return idle_search (max_matches);
+                });
+            entry.set_text (name);
         }
 
-        public void delete_c () {
-            var text = entry.get_text ();
-            StringBuilder builder = new StringBuilder (text);
-            builder.truncate (builder.len - 1);
-            entry.set_text (builder.str);
-            update_matches ();
-        }
+        public void cancel_search () {
+            if (idle_search_id > 0)
+                Source.remove (idle_search_id);
 
-        public void erase () {
-            entry.set_text ("");
-            update_matches ();
-        }
-
-        public string get_text () {
-            return entry.get_text ();
+            var store = (Gtk.ListStore)matches.get_model ();
+            store.clear ();
         }
 
         public void activate_selected () {
@@ -83,8 +62,8 @@ namespace IBusGucharmap {
             matches.row_activated (path, matches.get_column (0));
         }
 
-        public void move_cursor (Gtk.MovementStep step, int count) {
-            if (step == Gtk.MovementStep.DISPLAY_LINES) {
+        public void move_cursor (IBus.Charmap.MovementStep step, int count) {
+            if (step == IBus.Charmap.MovementStep.DISPLAY_LINES) {
                 Gtk.TreePath path;
                 matches.grab_focus ();
                 matches.get_cursor (out path, null);
@@ -111,10 +90,10 @@ namespace IBusGucharmap {
             store.get_iter (out iter, path);
             unichar uc;
             store.get (iter, 0, out uc);
-            activate_character (uc);
+            character_activated (uc);
         }
 
-        private bool idle_search () {
+        private bool idle_search (uint max_matches) {
             var text = entry.get_text ();
             var store = (Gtk.ListStore)matches.get_model ();
             
@@ -138,7 +117,7 @@ SELECT codepoint, name FROM unicode_names WHERE name LIKE ? LIMIT ?;
                 return false;
             }
 
-            rc = stmt.bind_int64 (2, number_of_matches);
+            rc = stmt.bind_int64 (2, (int)max_matches);
             if (rc != Sqlite.OK) {
                 stderr.printf ("can't bind values: %s\n",
                                database.errmsg ());
@@ -183,19 +162,6 @@ SELECT codepoint, name FROM unicode_names WHERE name LIKE ? LIMIT ?;
             return false;
         }
         
-        private void update_matches () {
-            var text = entry.get_text ();
-            var store = (Gtk.ListStore)matches.get_model ();
-
-            if (idle_search_id > 0)
-                Source.remove (idle_search_id);
-
-            if (text.length == 0)
-                store.clear ();
-            else
-                idle_search_id = Idle.add (idle_search);
-        }
-
         static construct {
             var filename = Path.build_filename (Config.PACKAGE_DATADIR,
                                                 Config.UNICODENAMESFILE);
@@ -248,12 +214,6 @@ SELECT codepoint, name FROM unicode_names WHERE name LIKE ? LIMIT ?;
             paned.show_all ();
 
             this.pack_start (paned, true, true, 0);
-
-            // bind gsettings values to properties
-            settings = new Settings ("org.freedesktop.ibus.engines.gucharmap");
-            settings.bind ("number-of-matches",
-                           this, "number-of-matches",
-                           SettingsBindFlags.GET);
         }
     }
 }

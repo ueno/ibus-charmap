@@ -1,25 +1,25 @@
-<?xml version=\"1.0\" encoding=\"utf-8\"?>
-<!-- filename: enchant.xml -->
+<?xml version="1.0" encoding="utf-8"?>
+<!-- filename: charmap.xml -->
 <component>
-	<name>org.freedesktop.IBus.Gucharmap</name>
-	<description>Gucharmap Component</description>
-	<exec>${libexecdir}/ibus-engine-gucharmap --ibus</exec>
+	<name>org.freedesktop.IBus.Charmap.Engine</name>
+	<description>Charmap Engine Component</description>
+	<exec>${libexecdir}/ibus-engine-charmap --ibus</exec>
 	<version>@VERSION@</version>
 	<author>Daiki Ueno &lt;ueno@unixuser.org&gt;</author>
 	<license>GPL</license>
 	<homepage>http://code.google.com/p/ibus</homepage>
-	<textdomain>ibus-gucharmap</textdomain>
+	<textdomain>ibus-charmap</textdomain>
 
 	<engines>
 		<engine>
-			<name>gucharmap</name>
+			<name>charmap</name>
 			<language>other</language>
 			<license>GPL</license>
 			<author>Daiki Ueno &lt;ueno@unixuser.org&gt;</author>
 			<icon>accessories-character-map</icon>
 			<layout>us</layout>
-			<longname>Unicode (Gucharmap)</longname>
-			<description>Unicode Input Method using Gucharmap</description>
+			<longname>Character Map</longname>
+			<description>Unicode Input Method Using Character Map</description>
 			<rank>0</rank>
 		</engine>
 	</engines>

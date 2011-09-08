@@ -17,7 +17,7 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 // 02110-1301, USA.
 
-namespace IBusGucharmap {
+namespace IBusCharmap {
     static bool ibus;
 
     const OptionEntry[] options = {
@@ -27,8 +27,8 @@ namespace IBusGucharmap {
     };
 
     public static int main (string[] args) {
-        var context = new OptionContext ("- ibus gucharmap");
-        context.add_main_entries (options, "ibus-gucharmap");
+        var context = new OptionContext ("- ibus charmap");
+        context.add_main_entries (options, "ibus-charmap");
         try {
             context.parse (ref args);
         } catch (OptionError e) {
@@ -38,27 +38,26 @@ namespace IBusGucharmap {
         Intl.bindtextdomain (Config.GETTEXT_PACKAGE, Config.LOCALEDIR);
         Intl.bind_textdomain_codeset (Config.GETTEXT_PACKAGE, "UTF-8");
 
-        Gtk.init (ref args);
         IBus.init ();
         var bus = new IBus.Bus ();
         bus.disconnected.connect (() => { IBus.quit (); });
 
         var factory = new IBus.Factory (bus.get_connection());
-        factory.add_engine ("gucharmap", typeof(IBusGucharmap.Engine));
+        factory.add_engine ("charmap", typeof(IBusCharmap.Engine));
         if (ibus) {
-            bus.request_name ("org.freedesktop.IBus.Gucharmap", 0);
+            bus.request_name ("org.freedesktop.IBus.Charmap.Engine", 0);
         } else {
             var component = new IBus.Component (
-                "org.freedesktop.IBus.Gucharmap",
-                N_("Gucharmap"), Config.VERSION, "GPL",
+                "org.freedesktop.IBus.Charmap.Engine",
+                N_("Charmap"), Config.VERSION, "GPL",
                 "Daiki Ueno <ueno@unixuser.org>",
                 "http://code.google.com/p/ibus/",
                 "",
                 "ibus-gucharmap");
             var engine = new IBus.EngineDesc (
                 "gucharmap",
-                N_("Unicode (Gucharmap)"),
-                N_("Unicode input method using Gucharmap"),
+                N_("Character Map"),
+                N_("Unicode Input Method Using Character Map"),
                 "other",
                 "GPL",
                 "Daiki Ueno <ueno@unixuser.org>",

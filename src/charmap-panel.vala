@@ -17,8 +17,8 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 // 02110-1301, USA.
 
-namespace IBusGucharmap {
-    private const string GUCHARMAP_DOMAIN = "gucharmap";
+namespace IBusCharmap {
+    private const string CHARMAP_DOMAIN = "charmap";
 
     class ChapterCellRenderer : Gtk.CellRendererText {
         private string _untranslated;
@@ -28,12 +28,12 @@ namespace IBusGucharmap {
             }
             set {
                 _untranslated = value;
-                text = dgettext (GUCHARMAP_DOMAIN, _untranslated);
+                text = dgettext (CHARMAP_DOMAIN, _untranslated);
             }
         }
     }
 
-    class CharmapPanel : Gtk.Box {
+    class CharmapPanel : Gtk.Box, Selectable {
         private Gtk.ComboBox chapters;
         private Gucharmap.Chartable chartable;
         private Gtk.Statusbar statusbar;
@@ -62,8 +62,8 @@ namespace IBusGucharmap {
             }
         }
 
-        public void move_cursor (Gtk.MovementStep step, int count) {
-            chartable.move_cursor (step, count);
+        public void move_cursor (IBus.Charmap.MovementStep step, int count) {
+            chartable.move_cursor ((Gtk.MovementStep)step, count);
         }
 
         public void popup_chapters () {
@@ -71,10 +71,12 @@ namespace IBusGucharmap {
         }
 
         public void activate_selected () {
-            chartable.activate ();
+            var uc = chartable.get_active_character ();
+            select_character (uc);
+            character_activated (uc);
         }
 
-        public virtual signal void activate_character (unichar uc) {
+        public void select_character (unichar uc) {
             var model = (Gucharmap.ChaptersModel)chapters.get_model ();
             Gtk.TreeIter iter;
             if (model.character_to_iter (uc, out iter)) {
@@ -98,11 +100,6 @@ namespace IBusGucharmap {
                 chartable.set_zoom_enabled (false);
                 chartable.set_zoom_enabled (true);
             }
-        }
-
-        private void on_chartable_activate () {
-            var uc = chartable.get_active_character ();
-            activate_character (uc);
         }
 
         private void on_chartable_notify_active_character (Object source,
@@ -138,7 +135,7 @@ namespace IBusGucharmap {
             chapters = new Gtk.ComboBox.with_model (model);
             chapters.changed.connect (on_chapter_changed);
 
-            // Translate chapter names in Gucharmap translation domain
+            // Translate chapter names in Charmap translation domain
             var renderer = new ChapterCellRenderer ();
             chapters.pack_start (renderer, true);
             chapters.set_attributes (renderer, "untranslated", 0);
@@ -160,7 +157,7 @@ namespace IBusGucharmap {
             chartable = new Gucharmap.Chartable ();
             // Enable zooming for the case that the font is too small
             chartable.set_zoom_enabled (true);
-            chartable.activate.connect (on_chartable_activate);
+            chartable.activate.connect (activate_selected);
             chartable.notify["active-character"].connect (
                 on_chartable_notify_active_character);
             this.hide.connect (on_hide);
@@ -169,14 +166,14 @@ namespace IBusGucharmap {
             paned.pack_end (scrolled_window, true, true, 0);
 
             var uc = Gucharmap.unicode_get_locale_character ();
-            activate_character (uc);
+            select_character (uc);
 
             paned.show_all ();
 
             this.pack_start (paned, true, true, 0);
 
             // bind gsettings values to properties
-            settings = new Settings ("org.freedesktop.ibus.engines.gucharmap");
+            settings = new Settings ("org.freedesktop.ibus.charmap.gtk");
             settings.bind ("use-system-font",
                            this, "use-system-font",
                            SettingsBindFlags.GET);
