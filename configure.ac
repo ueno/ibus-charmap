@@ -19,7 +19,7 @@
 # Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 # if not 1, append datestamp to the version number.
-m4_define([package_name], [ibus-gucharmap])
+m4_define([package_name], [ibus-charmap])
 m4_define([ibus_released], [1])
 m4_define([ibus_major_version], [1])
 m4_define([ibus_minor_version], [4])
@@ -66,6 +66,20 @@ PKG_CHECK_MODULES(SQLITE, [
     sqlite3
 ])
 
+# check gtk
+PKG_CHECK_MODULES(GTK, [
+    gtk+-3.0
+])
+
+# check gee
+PKG_CHECK_MODULES(GEE, [
+    gee-1.0
+])
+
+PKG_CHECK_MODULES(LIBIBUSCHARMAP, [
+    glib-2.0 >= 2.26.0 gobject-2.0 gio-2.0
+])
+
 # check glib2 and intltool for gsettings
 AM_PATH_GLIB_2_0
 IT_PROG_INTLTOOL([0.35.0])
@@ -93,11 +107,13 @@ AM_GNU_GETTEXT_VERSION(0.16.1)
 # OUTPUT files
 AC_CONFIG_FILES(po/Makefile.in
 Makefile
-ibus-gucharmap.spec
+ibus-charmap.spec
 vapi/Makefile
 tools/Makefile
 src/Makefile
-src/gucharmap.xml.in
+src/gtkcharmap.xml.in
+src/charmap.xml.in
+src/ibus-charmap.pc
 m4/Makefile
 )
 

@@ -17,69 +17,64 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 // 02110-1301, USA.
 
-namespace IBusGucharmap {
+namespace IBusCharmap {
     class Engine : IBus.Engine {
-        private static GLib.List<Engine> instances;
         private Settings settings;
 
         public string select_chapter_shortcut { get; set; }
         public string commit_character_shortcut { get; set; }
+        public uint max_matches { get; set; }
 
         private IBus.PropList prop_list;
 
-        private Gtk.Window window;
-        private int saved_x;
-        private int saved_y;
-
-        private Gtk.Container panel;
-        private CharmapPanel charmap_panel;
-        private SearchPanel search_panel;
-
-        // const values
-        private const int INITIAL_WIDTH = 320;
-        private const int INITIAL_HEIGHT = 240;
+        private StringBuilder preedit = new StringBuilder ();
+        private IBus.Charmap proxy;
 
         struct MoveBinding {
             uint keyval;
             uint state;
-            Gtk.MovementStep step;
+            IBus.Charmap.MovementStep step;
             int count;
         }
 
         private const MoveBinding[] move_bindings = {
-            { IBus.Up, 0, Gtk.MovementStep.DISPLAY_LINES, -1 },
-            { IBus.KP_Up, 0, Gtk.MovementStep.DISPLAY_LINES, -1 },
-            { IBus.Down, 0, Gtk.MovementStep.DISPLAY_LINES, 1 },
-            { IBus.KP_Down, 0, Gtk.MovementStep.DISPLAY_LINES, 1 },
-            { IBus.Home, 0, Gtk.MovementStep.BUFFER_ENDS, -1 },
-            { IBus.KP_Home, 0, Gtk.MovementStep.BUFFER_ENDS, -1 },
-            { IBus.End, 0, Gtk.MovementStep.BUFFER_ENDS, 1 },
-            { IBus.KP_End, 0, Gtk.MovementStep.BUFFER_ENDS, 1 },
-            { IBus.Page_Up, 0, Gtk.MovementStep.PAGES, -1 },
-            { IBus.KP_Page_Up, 0, Gtk.MovementStep.PAGES, -1 },
-            { IBus.Page_Down, 0, Gtk.MovementStep.PAGES, 1 },
-            { IBus.KP_Page_Down, 0, Gtk.MovementStep.PAGES, 1 },
-            { IBus.Left, 0, Gtk.MovementStep.VISUAL_POSITIONS, -1 },
-            { IBus.KP_Left, 0, Gtk.MovementStep.VISUAL_POSITIONS, -1 },
-            { IBus.Right, 0, Gtk.MovementStep.VISUAL_POSITIONS, 1 },
-            { IBus.KP_Right, 0, Gtk.MovementStep.VISUAL_POSITIONS, 1 }
+            { IBus.Up, 0, IBus.Charmap.MovementStep.DISPLAY_LINES, -1 },
+            { IBus.KP_Up, 0, IBus.Charmap.MovementStep.DISPLAY_LINES, -1 },
+            { IBus.Down, 0, IBus.Charmap.MovementStep.DISPLAY_LINES, 1 },
+            { IBus.KP_Down, 0, IBus.Charmap.MovementStep.DISPLAY_LINES, 1 },
+            { IBus.Home, 0, IBus.Charmap.MovementStep.BUFFER_ENDS, -1 },
+            { IBus.KP_Home, 0, IBus.Charmap.MovementStep.BUFFER_ENDS, -1 },
+            { IBus.End, 0, IBus.Charmap.MovementStep.BUFFER_ENDS, 1 },
+            { IBus.KP_End, 0, IBus.Charmap.MovementStep.BUFFER_ENDS, 1 },
+            { IBus.Page_Up, 0, IBus.Charmap.MovementStep.PAGES, -1 },
+            { IBus.KP_Page_Up, 0, IBus.Charmap.MovementStep.PAGES, -1 },
+            { IBus.Page_Down, 0, IBus.Charmap.MovementStep.PAGES, 1 },
+            { IBus.KP_Page_Down, 0, IBus.Charmap.MovementStep.PAGES, 1 },
+            { IBus.Left, 0, IBus.Charmap.MovementStep.VISUAL_POSITIONS, -1 },
+            { IBus.KP_Left, 0, IBus.Charmap.MovementStep.VISUAL_POSITIONS, -1 },
+            { IBus.Right, 0, IBus.Charmap.MovementStep.VISUAL_POSITIONS, 1 },
+            { IBus.KP_Right, 0, IBus.Charmap.MovementStep.VISUAL_POSITIONS, 1 }
         };
 
         public override void enable () {
-            show_window ();
+            proxy.show ();
+            base.enable ();
         }
 
         public override void disable () {
-            hide_window ();
+            proxy.hide ();
+            base.disable ();
         }
-        
+
         public override void focus_in () {
             register_properties (prop_list);
-            show_window ();
+            proxy.show ();
+            base.focus_in ();
         }
 
         public override void focus_out () {
-            hide_window ();
+            proxy.hide ();
+            base.focus_out ();
         }
 
         public override void property_activate (string prop_name,
@@ -88,16 +83,7 @@ namespace IBusGucharmap {
             if (prop_name == "setup")
                 Process.spawn_command_line_async (
                     Path.build_filename (Config.LIBEXECDIR,
-                                         "ibus-setup-gucharmap"));
-        }
-
-        private void update_panel () {
-            var current = window.get_child ();
-            current.hide ();
-            window.remove (current);
-            panel.show_all ();
-            window.add (panel);
-            show_window ();
+                                         "ibus-setup-charmap"));
         }
 
         private static bool isascii (uint keyval) {
@@ -126,7 +112,11 @@ namespace IBusGucharmap {
             return true;
         }
 
-        private bool process_charmap_key_event (uint keyval,
+        private void move_cursor (IBus.Charmap.MovementStep step, int count) {
+            proxy.move_cursor (step, count);
+        }
+
+        public override bool process_key_event (uint keyval,
                                                 uint keycode,
                                                 uint state)
         {
@@ -140,7 +130,7 @@ namespace IBusGucharmap {
             // process chartable move bindings
             foreach (var binding in move_bindings) {
                 if (binding.keyval == keyval && binding.state == state) {
-                    charmap_panel.move_cursor (binding.step, binding.count);
+                    move_cursor (binding.step, binding.count);
                     return true;
                 }
             }
@@ -150,7 +140,7 @@ namespace IBusGucharmap {
                           out shortcut_keyval,
                           out shortcut_state);
             if (keyval == shortcut_keyval && state == shortcut_state) {
-                charmap_panel.activate_selected ();
+                proxy.activate_selected ();
                 return true;
             }
 
@@ -158,184 +148,92 @@ namespace IBusGucharmap {
             parse_keystr (select_chapter_shortcut,
                           out shortcut_keyval,
                           out shortcut_state);
-            if ((shortcut_state & state) != 0 && keyval == shortcut_keyval) {
-                charmap_panel.popup_chapters ();
+            if ((shortcut_state & state) != 0 &&
+                keyval == shortcut_keyval) {
+                proxy.popup_chapters ();
                 return true;
             }
 
             if (state == 0 && isascii (keyval)) {
                 char c = (char)keyval;
-                search_panel.append_c (c);
-                panel = search_panel;
-                update_panel ();
-                return true;
-            }
-                
-            return true;
-        }
-
-        private bool process_search_key_event (uint keyval,
-                                                uint keycode,
-                                                uint state)
-        {
-            // ignore release event
-            if ((IBus.ModifierType.RELEASE_MASK & state) != 0)
-                return false;
-
-            if (state == 0 && isascii (keyval)) {
-                char c = (char)keyval;
-                search_panel.append_c (c);
+                preedit.append_c (c);
+                proxy.start_search (preedit.str, max_matches);
                 return true;
             }
 
-            if (keyval == IBus.BackSpace) {
-                search_panel.delete_c ();
-                if (search_panel.get_text ().length == 0) {
-                    panel = charmap_panel;
-                    update_panel ();
+            if (preedit.len > 0) {
+                if (keyval == IBus.BackSpace) {
+                    preedit.truncate (preedit.len - 1);
+                    if (preedit.len == 0) {
+                        proxy.cancel_search ();
+                        proxy.show ();
+                    } else {
+                        proxy.start_search (preedit.str, max_matches);
+                    }
+
+                    return true;
                 }
-                return true;
-            }
 
-            // process chartable move bindings
-            foreach (var binding in move_bindings) {
-                if (binding.keyval == keyval && binding.state == state) {
-                    search_panel.move_cursor (binding.step, binding.count);
+                if (keyval == IBus.Escape) {
+                    preedit.erase ();
+                    proxy.cancel_search ();
+                    proxy.show ();
                     return true;
                 }
             }
 
-            if (keyval == IBus.Return) {
-                search_panel.activate_selected ();
-                return true;
-            }
-
-            if (keyval == IBus.Escape) {
-                search_panel.erase ();
-                panel = charmap_panel;
-                update_panel ();
-                return true;
-            }
- 
             return true;
         }
 
-        public override bool process_key_event (uint keyval,
-                                                uint keycode,
-                                                uint state)
-        {
-            if (panel == charmap_panel)
-                return process_charmap_key_event (keyval, keycode, state);
-            else
-                return process_search_key_event (keyval, keycode, state);
+        public override void set_cursor_location (int x, int y, int w, int h) {
+            proxy.set_cursor_location (x, y, w, h);
+            base.set_cursor_location (x, y, w, h);
         }
 
         public override void destroy () {
-            window.destroy ();
+            proxy.hide ();
+            base.destroy ();
         }
 
-        private void on_charmap_activate_character (unichar uc) {
+        private void on_character_activated (unichar uc) {
             if (uc > 0)
                 commit_text (new IBus.Text.from_string (uc.to_string ()));
         }
 
-        private void on_search_activate_character (unichar uc) {
-            search_panel.erase ();
-            charmap_panel.activate_character (uc);
-            panel = charmap_panel;
-            update_panel ();
-        }
-
         construct {
-            window = new Gtk.Window (Gtk.WindowType.POPUP);
-            window.set_size_request (INITIAL_WIDTH,
-                                                  INITIAL_HEIGHT);
-            charmap_panel = new CharmapPanel ();
-            charmap_panel.activate_character.connect (
-                on_charmap_activate_character);
-
-            search_panel = new SearchPanel ();
-            search_panel.activate_character.connect (
-                on_search_activate_character);
-
-            // The initial window state is charmap display.
-            panel = charmap_panel;
-
-            window.add (panel);
-
-            // Pass around "hide" signal to charmap panel, to tell
-            // that the toplevel window is hidden - this is necessary
-            // to clear zoom window (see CharmapPanel#on_hide()).
-            window.hide.connect (() => charmap_panel.hide ());
-
-            // Manually disable all other instances of this engine as
-            // IBus 1.4 no longer destroy engines.
-            foreach (var engine in instances) {
-                engine.disable ();
+            try {
+                DBusConnection conn = get_connection ();
+                proxy = conn.get_proxy_sync ("org.freedesktop.IBus.Charmap",
+                    "/org/freedesktop/IBus/Charmap");
+                proxy.character_activated.connect (on_character_activated);
+            } catch (IOError e) {
+                stderr.printf ("%s\n", e.message);
             }
-            instances.append (this);
 
             prop_list = new IBus.PropList ();
             var prop = new IBus.Property ("setup",
                                           IBus.PropType.NORMAL,
                                           new IBus.Text.from_string ("Setup"),
                                           "gtk-preferences",
-                                          new IBus.Text.from_string ("Configure Gucharmap engine"),
+                                          new IBus.Text.from_string ("Configure Charmap engine"),
                                           true,
                                           true,
                                           IBus.PropState.UNCHECKED,
-                                          null);
+                                          new IBus.PropList ()); // dummy
             prop_list.append (prop);
 
-            // bind gsettings values to properties
-            settings = new Settings ("org.freedesktop.ibus.engines.gucharmap");
+            // bind gsettings values to properties - probably should
+            // use IBus.Config here instead
+            settings = new Settings ("org.freedesktop.ibus.engines.charmap");
             settings.bind ("select-chapter-shortcut",
                            this, "select-chapter-shortcut",
                            SettingsBindFlags.GET);
             settings.bind ("commit-character-shortcut",
                            this, "commit-character-shortcut",
                            SettingsBindFlags.GET);
-        }
-
-        private void show_window () {
-            window.show_all ();
-            if (saved_x >= 0 && saved_y >= 0)
-                window.move (saved_x, saved_y);
-        }
-
-        private void hide_window () {
-            if (window != null) {
-                window.hide ();
-            }
-        }
-
-        public override void set_cursor_location (int x, int y, int w, int h) {
-            if (window == null)
-                return;
-
-            // TODO: More precise placement calculation
-            Gtk.Allocation allocation;
-            window.get_allocation (out allocation);
-
-            int rx, ry, rw, rh;
-            var root_window = Gdk.get_default_root_window ();
-            root_window.get_geometry (out rx, out ry, out rw, out rh);
-
-            if (x + allocation.width > rw)
-                x -= allocation.width;
-            x = int.max (x, rx);
-            
-            if (y + h + allocation.height > rh)
-                y -= allocation.height;
-            else
-                y += h;
-            y = int.max (y, ry);
-
-            if ((x != saved_x || y != saved_y)) {
-                window.move (x, y);
-                saved_x = x;
-                saved_y = y;
-            }
+            settings.bind ("max-matches",
+                           this, "max-matches",
+                           SettingsBindFlags.GET);
         }
     }
 }

@@ -1,10 +1,19 @@
-Unicode input engine (using Gucharmap) for IBus.
+Unicode character map support for IBus.
+
+* What's this
+
+This package contains the following components:
+
+- ibus-ui-charmap-gtk: a D-Bus service running on IBus bus, which provides
+  a character map UI
+- libibuscharmap: a client library to access the service
+- ibus-engine-charmap: an example IBus engine using the service
 
 * Install
 
 You will need:
 
-- IBus (pkgconfig: ibus-1.0 >= 1.3.0)
+- IBus (pkgconfig: ibus-1.0 >= 1.4.0)
 - Gucharmap 3.0.* (pkgconfig: gucharmap-2.90 >= 3.0.1)
 - Vala 0.12
 
@@ -15,12 +24,12 @@ You will need:
 
 * Usage
 
-Add ibus-gucharmap with ibus-setup, enable it on a GTK application,
-and you will see a character map.  Then, double-click a Unicode
-character to input.
+Add "Other -> Character Map" engine with ibus-setup, enable IBus on a
+GTK application, and you will see a character map.  Then, double-click
+a Unicode character to input it.
 
-ibus-gucharmap supports keyboard-only operation.
-Here are key bindings:
+The IME supports keyboard-only operation.  Here is the list of key
+bindings:
 
 - Alt+Down: select chapter (Unicode block)
 - Return: commit the character on the selected cell in charmap
