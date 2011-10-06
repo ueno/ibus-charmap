@@ -26,4 +26,4 @@ Description: A library to access IBus character map service
 Version: @VERSION@
 Requires: gobject-2.0 gio-2.0
 Libs: -L${libdir} -libuscharmap
-Cflags: -I${includedir}/ibuscharmap
+Cflags: -I${includedir}/ibus-charmap

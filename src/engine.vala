@@ -28,7 +28,7 @@ namespace IBusCharmap {
         private IBus.PropList prop_list;
 
         private StringBuilder preedit = new StringBuilder ();
-        private IBus.Charmap proxy;
+        private IBus.Charmap charmap;
 
         struct MoveBinding {
             uint keyval;
@@ -57,23 +57,23 @@ namespace IBusCharmap {
         };
 
         public override void enable () {
-            proxy.show ();
+            charmap.show ();
             base.enable ();
         }
 
         public override void disable () {
-            proxy.hide ();
+            charmap.hide ();
             base.disable ();
         }
 
         public override void focus_in () {
             register_properties (prop_list);
-            proxy.show ();
+            charmap.show ();
             base.focus_in ();
         }
 
         public override void focus_out () {
-            proxy.hide ();
+            charmap.hide ();
             base.focus_out ();
         }
 
@@ -113,7 +113,7 @@ namespace IBusCharmap {
         }
 
         private void move_cursor (IBus.Charmap.MovementStep step, int count) {
-            proxy.move_cursor (step, count);
+            charmap.move_cursor (step, count);
         }
 
         public override bool process_key_event (uint keyval,
@@ -140,7 +140,7 @@ namespace IBusCharmap {
                           out shortcut_keyval,
                           out shortcut_state);
             if (keyval == shortcut_keyval && state == shortcut_state) {
-                proxy.activate_selected ();
+                charmap.activate_selected ();
                 return true;
             }
 
@@ -150,14 +150,14 @@ namespace IBusCharmap {
                           out shortcut_state);
             if ((shortcut_state & state) != 0 &&
                 keyval == shortcut_keyval) {
-                proxy.popup_chapters ();
+                charmap.popup_chapters ();
                 return true;
             }
 
             if (state == 0 && isascii (keyval)) {
                 char c = (char)keyval;
                 preedit.append_c (c);
-                proxy.start_search (preedit.str, max_matches);
+                charmap.start_search (preedit.str, max_matches);
                 return true;
             }
 
@@ -165,10 +165,10 @@ namespace IBusCharmap {
                 if (keyval == IBus.BackSpace) {
                     preedit.truncate (preedit.len - 1);
                     if (preedit.len == 0) {
-                        proxy.cancel_search ();
-                        proxy.show ();
+                        charmap.cancel_search ();
+                        charmap.show ();
                     } else {
-                        proxy.start_search (preedit.str, max_matches);
+                        charmap.start_search (preedit.str, max_matches);
                     }
 
                     return true;
@@ -176,8 +176,8 @@ namespace IBusCharmap {
 
                 if (keyval == IBus.Escape) {
                     preedit.erase ();
-                    proxy.cancel_search ();
-                    proxy.show ();
+                    charmap.cancel_search ();
+                    charmap.show ();
                     return true;
                 }
             }
@@ -186,12 +186,12 @@ namespace IBusCharmap {
         }
 
         public override void set_cursor_location (int x, int y, int w, int h) {
-            proxy.set_cursor_location (x, y, w, h);
+            charmap.set_cursor_location (x, y, w, h);
             base.set_cursor_location (x, y, w, h);
         }
 
         public override void destroy () {
-            proxy.hide ();
+            charmap.hide ();
             base.destroy ();
         }
 
@@ -203,9 +203,8 @@ namespace IBusCharmap {
         construct {
             try {
                 DBusConnection conn = get_connection ();
-                proxy = conn.get_proxy_sync ("org.freedesktop.IBus.Charmap",
-                    "/org/freedesktop/IBus/Charmap");
-                proxy.character_activated.connect (on_character_activated);
+                charmap = new IBus.Charmap (conn);
+                charmap.character_activated.connect (on_character_activated);
             } catch (IOError e) {
                 stderr.printf ("%s\n", e.message);
             }

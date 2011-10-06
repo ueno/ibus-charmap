@@ -30,7 +30,7 @@ libibuscharmapinclude_HEADERS = \
 	ibuscharmap.h
 
 libibuscharmap_la_SOURCES = \
-	proxy.vala
+	client.vala
 
 ibus_ui_charmap_gtk_VALAFLAGS = \
 	--vapidir=$(builddir) --vapidir=$(top_srcdir)/vapi \
