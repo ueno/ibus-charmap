@@ -41,6 +41,7 @@ namespace IBusCharmap {
         IBus.init ();
         var bus = new IBus.Bus ();
         bus.disconnected.connect (() => { IBus.quit (); });
+        IBusCharmap.Engine.config = bus.get_config ();
 
         var factory = new IBus.Factory (bus.get_connection());
         factory.add_engine ("charmap", typeof(IBusCharmap.Engine));

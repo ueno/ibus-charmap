@@ -17,17 +17,17 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 // 02110-1301, USA.
 
-namespace IBusGucharmap {
+namespace IBusCharmap {
     class Setup : Object {
         private Gtk.Dialog dialog;
         private Gtk.CheckButton use_system_font_checkbutton;
         private Gtk.FontButton fontbutton;
-        private Gtk.SpinButton number_of_matches_spinbutton;
+        private Gtk.SpinButton max_matches_spinbutton;
         private Gtk.Entry select_chapter_entry;
         private Gtk.Button select_chapter_button;
         private Gtk.Entry commit_character_entry;
         private Gtk.Button commit_character_button;
-        private Settings settings;
+        private IBus.Config config;
 
         public bool use_system_font {
             get {
@@ -47,12 +47,12 @@ namespace IBusGucharmap {
             }
         }
 
-        public int number_of_matches {
+        public int max_matches {
             get {
-                return (int)number_of_matches_spinbutton.value;
+                return (int)max_matches_spinbutton.value;
             }
             set {
-                number_of_matches_spinbutton.set_value (value);
+                max_matches_spinbutton.set_value (value);
             }
         }
 
@@ -74,23 +74,24 @@ namespace IBusGucharmap {
             }
         }
 
-        public Setup () {
+        public Setup (IBus.Config config) {
+            this.config = config;
             var builder = new Gtk.Builder ();
-            builder.set_translation_domain ("ibus-gucharmap");
+            builder.set_translation_domain ("ibus-charmap");
             builder.add_from_file (
                 Path.build_filename (Config.SETUPDIR,
-                                     "ibus-gucharmap-preferences.ui"));
+                                     "ibus-charmap-preferences.ui"));
 
-            // Map widgets defined in ibus-gucharmap-preferences.ui
-            // into instance variables.
+            // Map widgets defined in ibus-charmap-preferences.ui into
+            // instance variables.
             var object = builder.get_object ("dialog");
             dialog = (Gtk.Dialog)object;
             object = builder.get_object ("fontbutton");
             fontbutton = (Gtk.FontButton)object;
             object = builder.get_object ("use_system_font_checkbutton");
             use_system_font_checkbutton = (Gtk.CheckButton)object;
-            object = builder.get_object ("number_of_matches_spinbutton");
-            number_of_matches_spinbutton = (Gtk.SpinButton)object;
+            object = builder.get_object ("max_matches_spinbutton");
+            max_matches_spinbutton = (Gtk.SpinButton)object;
             object = builder.get_object ("select_chapter_entry");
             select_chapter_entry = (Gtk.Entry)object;
             object = builder.get_object ("select_chapter_button");
@@ -119,31 +120,64 @@ namespace IBusGucharmap {
                     dialog.destroy ();
                 });
 
-            // bind gsettings values to properties
-            settings = new Settings ("org.freedesktop.ibus.engines.gucharmap");
-            settings.bind ("use-system-font",
-                           this, "use-system-font",
-                           SettingsBindFlags.DEFAULT);
-            settings.bind ("font",
-                           this, "font",
-                           SettingsBindFlags.DEFAULT);
-            settings.bind ("number-of-matches",
-                           this, "number-of-matches",
-                           SettingsBindFlags.DEFAULT);
-            settings.bind ("select-chapter-shortcut",
-                           this, "select-chapter-shortcut",
-                           SettingsBindFlags.DEFAULT);
-            settings.bind ("commit-character-shortcut",
-                           this, "commit-character-shortcut",
-                           SettingsBindFlags.DEFAULT);
+            Variant? value;
+
+            value = config.get_value ("charmap", "use_system_font");
+            if (value != null) {
+                use_system_font = value.get_boolean ();
+            } else {
+                use_system_font = true;
+            }
+            value = config.get_value ("charmap", "font");
+            if (value != null) {
+                font = value.get_string ();
+            } else {
+                font = "Sans 12";
+            }
+            value = config.get_value ("engines/charmap",
+                                      "max_matches");
+            if (value != null) {
+                max_matches = value.get_int32 ();
+            } else {
+                max_matches = 100;
+            }
+            value = config.get_value ("engines/charmap",
+                                      "select_chapter_shortcut");
+            if (value != null) {
+                select_chapter_shortcut = value.get_string ();
+            } else {
+                select_chapter_shortcut = "Alt+Down";
+            }
+            value = config.get_value ("engines/charmap",
+                                      "commit_character_shortcut");
+            if (value != null) {
+                commit_character_shortcut = value.get_string ();
+            } else {
+                commit_character_shortcut = "Return";
+            }
         }
 
         private void save_settings () {
             use_system_font = use_system_font_checkbutton.active;
             font = fontbutton.font_name;
-            number_of_matches = (int)number_of_matches_spinbutton.value;
+            max_matches = (int)max_matches_spinbutton.value;
             select_chapter_shortcut = select_chapter_entry.get_text ();
             commit_character_shortcut = commit_character_entry.get_text ();
+            config.set_value ("charmap",
+                              "use_system_font",
+                              new Variant.boolean (use_system_font));
+            config.set_value ("charmap",
+                              "font",
+                              new Variant.string (font));
+            config.set_value ("engines/charmap",
+                              "max_matches",
+                              new Variant.int32 (max_matches));
+            config.set_value ("engines/charmap",
+                              "select_chapter_shortcut",
+                              new Variant.string (select_chapter_shortcut));
+            config.set_value ("engines/charmap",
+                              "commit_character_shortcut",
+                              new Variant.string (commit_character_shortcut));
         }
 
         public void run () {

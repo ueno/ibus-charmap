@@ -38,7 +38,6 @@ namespace IBusCharmap {
         private Gucharmap.Chartable chartable;
         private Gtk.Statusbar statusbar;
         private uint statusbar_context_id;
-        private Settings settings;
 
         private bool _use_system_font;
         public bool use_system_font {
@@ -125,7 +124,7 @@ namespace IBusCharmap {
                 chartable.set_font_desc (font_desc);
         }
 
-        public CharmapPanel () {
+        public CharmapPanel (IBus.Config config) {
             var paned = new Gtk.VBox (false, 0);
 
             // Chapters combo box
@@ -172,14 +171,19 @@ namespace IBusCharmap {
 
             this.pack_start (paned, true, true, 0);
 
-            // bind gsettings values to properties
-            settings = new Settings ("org.freedesktop.ibus.charmap.gtk");
-            settings.bind ("use-system-font",
-                           this, "use-system-font",
-                           SettingsBindFlags.GET);
-            settings.bind ("font",
-                           this, "font",
-                           SettingsBindFlags.GET);
+            Variant? value;
+            value = config.get_value ("charmap", "use_system_font");
+            if (value != null) {
+                _use_system_font = value.get_boolean ();
+            } else {
+                _use_system_font = true;
+            }
+            value = config.get_value ("charmap", "font");
+            if (value != null) {
+                _font = value.get_string ();
+            } else {
+                _font = "Sans 12";
+            }
         }
     }
 }

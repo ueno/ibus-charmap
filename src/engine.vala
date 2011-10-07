@@ -19,16 +19,15 @@
 
 namespace IBusCharmap {
     class Engine : IBus.Engine {
-        private Settings settings;
-
-        public string select_chapter_shortcut { get; set; }
-        public string commit_character_shortcut { get; set; }
-        public uint max_matches { get; set; }
+        string select_chapter_shortcut;
+        string commit_character_shortcut;
+        uint max_matches;
 
         private IBus.PropList prop_list;
 
         private StringBuilder preedit = new StringBuilder ();
         private IBus.Charmap charmap;
+        internal static IBus.Config config;
 
         struct MoveBinding {
             uint keyval;
@@ -221,18 +220,30 @@ namespace IBusCharmap {
                                           new IBus.PropList ()); // dummy
             prop_list.append (prop);
 
-            // bind gsettings values to properties - probably should
-            // use IBus.Config here instead
-            settings = new Settings ("org.freedesktop.ibus.engines.charmap");
-            settings.bind ("select-chapter-shortcut",
-                           this, "select-chapter-shortcut",
-                           SettingsBindFlags.GET);
-            settings.bind ("commit-character-shortcut",
-                           this, "commit-character-shortcut",
-                           SettingsBindFlags.GET);
-            settings.bind ("max-matches",
-                           this, "max-matches",
-                           SettingsBindFlags.GET);
+            Variant? value;
+            value = config.get_value ("engines/charmap",
+                                      "selet_chapter_shortcut");
+            if (value != null) {
+                select_chapter_shortcut = value.get_string ();
+            } else {
+                select_chapter_shortcut = "Alt+Down";
+            }
+
+            value = config.get_value ("engines/charmap",
+                                      "commit_character_shortcut");
+            if (value != null) {
+                commit_character_shortcut = value.get_string ();
+            } else {
+                commit_character_shortcut = "Return";
+            }
+
+            value = config.get_value ("engines/charmap",
+                                      "max_matches");
+            if (value != null) {
+                max_matches = value.get_int32 ();
+            } else {
+                max_matches = 100;
+            }
         }
     }
 }

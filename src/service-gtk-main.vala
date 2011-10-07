@@ -21,6 +21,7 @@ static int main (string[] args) {
     IBus.init ();
     var bus = new IBus.Bus ();
     bus.disconnected.connect (() => { IBus.quit (); });
+    IBusCharmap.GtkService.config = bus.get_config ();
 
     DBusConnection conn;
     if (ibus) {

@@ -30,10 +30,12 @@ namespace IBusCharmap {
         private CharmapPanel charmap_panel;
         private SearchPanel search_panel;
 
+        internal static IBus.Config config;
+
         public GtkService (DBusConnection conn) {
             window = new Gtk.Window (Gtk.WindowType.POPUP);
             window.set_size_request (INITIAL_WIDTH, INITIAL_HEIGHT);
-            charmap_panel = new CharmapPanel ();
+            charmap_panel = new CharmapPanel (config);
             charmap_panel.character_activated.connect ((uc) => {
                     character_activated (uc);
                 });

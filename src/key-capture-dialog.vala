@@ -17,7 +17,7 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 // 02110-1301, USA.
 
-namespace IBusGucharmap {
+namespace IBusCharmap {
     // translated from keycapturedialog.py in ibus-hangul
     class KeyCaptureDialog {
         private Gtk.MessageDialog dialog;

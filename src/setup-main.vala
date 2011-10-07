@@ -17,12 +17,14 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 // 02110-1301, USA.
 
-namespace IBusGucharmap {
+namespace IBusCharmap {
     public static int main (string[] args) {
 		Gtk.init (ref args);
 		IBus.init ();
 
-		var setup = new Setup ();
+        var bus = new IBus.Bus ();
+        var config = bus.get_config ();
+		var setup = new Setup (config);
 
 		setup.run ();
 		return 0;
