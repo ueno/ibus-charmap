@@ -85,6 +85,9 @@ AM_PATH_GLIB_2_0
 IT_PROG_INTLTOOL([0.35.0])
 GLIB_GSETTINGS
 
+# check gtk-doc
+GTK_DOC_CHECK([1.15])
+
 # check vala
 AM_PROG_VALAC([0.12.0])
 
@@ -115,6 +118,7 @@ src/gtkcharmap.xml.in
 src/charmap.xml.in
 src/ibus-charmap.pc
 m4/Makefile
+docs/Makefile
 )
 
 AC_OUTPUT
