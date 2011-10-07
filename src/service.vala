@@ -20,6 +20,7 @@
 namespace IBusCharmap {
     [DBus(name = "org.freedesktop.IBus.Charmap")]
     public abstract class Service : Object {
+        public bool visible { get; protected set; }
         public abstract void show ();
         public abstract void hide ();
         public abstract void set_cursor_location (int x, int y, int w, int h);

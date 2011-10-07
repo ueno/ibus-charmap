@@ -20,17 +20,17 @@
 namespace IBus {
     [DBus(name = "org.freedesktop.IBus.Charmap")]
     interface ICharmap : Object {
-        internal abstract void show () throws IOError;
-        internal abstract void hide () throws IOError;
-        internal abstract void set_cursor_location (int x, int y, int w, int h) throws IOError;
-        internal abstract void move_cursor (IBus.Charmap.MovementStep step, int count) throws IOError;
-        internal abstract void select_character (unichar uc) throws IOError;
-        internal abstract void activate_selected () throws IOError;
-        internal abstract void popup_chapters () throws IOError;
-        internal signal void character_activated (unichar uc);
+        public abstract void show () throws IOError;
+        public abstract void hide () throws IOError;
+        public abstract void set_cursor_location (int x, int y, int w, int h) throws IOError;
+        public abstract void move_cursor (IBus.Charmap.MovementStep step, int count) throws IOError;
+        public abstract void select_character (unichar uc) throws IOError;
+        public abstract void activate_selected () throws IOError;
+        public abstract void popup_chapters () throws IOError;
+        public signal void character_activated (unichar uc);
 
-        internal abstract void start_search (string name, uint max_matches) throws IOError;
-        internal abstract void cancel_search () throws IOError;
+        public abstract void start_search (string name, uint max_matches) throws IOError;
+        public abstract void cancel_search () throws IOError;
     }
 
     /**
@@ -67,6 +67,13 @@ namespace IBus {
             HORIZONTAL_PAGES
         }
 
+        /**
+         * IBusCharmap:visible:
+         *
+         * Whether the charmap window is visible.
+         */
+        public bool visible { get; private set; }
+
         ICharmap proxy;
 
         /**
@@ -83,6 +90,14 @@ namespace IBus {
             proxy.character_activated.connect ((uc) => {
                     character_activated (uc);
                 });
+            ((DBusProxy)proxy).g_properties_changed.connect ((c, i) => {
+                    var v = c.lookup_value ("visible", VariantType.BOOLEAN);
+                    this.visible = v.get_boolean ();
+                });
+        }
+
+        ~Charmap () {
+            hide ();
         }
 
         /**

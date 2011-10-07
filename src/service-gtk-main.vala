@@ -26,7 +26,12 @@ static int main (string[] args) {
     if (ibus) {
         conn = bus.get_connection ();
     } else {
-        conn = Bus.get_sync (BusType.SESSION);
+        try {
+            conn = Bus.get_sync (BusType.SESSION);
+        } catch (IOError e) {
+            stderr.printf ("can't get session bus: %s\n", e.message);
+            return 1;
+        }
     }
 	new IBusCharmap.GtkService (conn);
 

@@ -23,9 +23,6 @@ namespace IBusCharmap {
         private const int INITIAL_WIDTH = 320;
         private const int INITIAL_HEIGHT = 240;
 
-        private int saved_x;
-        private int saved_y;
-
         private Gtk.Window window;
 		private WindowPlacement placement;
 
@@ -56,9 +53,34 @@ namespace IBusCharmap {
             // to clear zoom window (see CharmapPanel#on_hide()).
             window.hide.connect (() => charmap_panel.hide ());
 
+            window.notify["visible"].connect ((s, p) => {
+                    send_visible_changed (conn);
+                });
+
 			placement = new WindowPlacement ();
 
 			register_charmap (conn);
+        }
+
+        void send_visible_changed (DBusConnection conn) {
+            var changed = new VariantBuilder (VariantType.ARRAY);
+            var invalidated = new VariantBuilder (new VariantType ("as"));
+            changed.add ("{sv}",
+                         "visible",
+                         new Variant.boolean (window.visible));
+            try {
+                conn.emit_signal (
+                    null,
+                    "/org/freedesktop/IBus/Charmap",
+                    "org.freedesktop.DBus.Properties",
+                    "PropertiesChanged",
+                    new Variant ("(sa{sv}as)",
+                                 "org.freedesktop.IBus.Charmap",
+                                 changed,
+                                 invalidated));
+            } catch (Error e) {
+                stderr.printf ("%s\n", e.message);
+            }
         }
 
 		public override void show () {
