@@ -18,13 +18,13 @@
 // 02110-1301, USA.
 
 namespace IBusCharmap {
-	public class GtkService : Service {
+    public class GtkService : Service {
         // const values
         private const int INITIAL_WIDTH = 320;
         private const int INITIAL_HEIGHT = 240;
 
         private Gtk.Window window;
-		private WindowPlacement placement;
+        private WindowPlacement placement;
 
         private Gtk.Container panel;
         private CharmapPanel charmap_panel;
@@ -57,9 +57,9 @@ namespace IBusCharmap {
                     send_visible_changed (conn);
                 });
 
-			placement = new WindowPlacement ();
+            placement = new WindowPlacement ();
 
-			register_charmap (conn);
+            register_charmap (conn);
         }
 
         void send_visible_changed (DBusConnection conn) {
@@ -83,26 +83,26 @@ namespace IBusCharmap {
             }
         }
 
-		public override void show () {
+        public override void show () {
             window.show_all ();
-			placement.restore_location (window);
-		}
+            placement.restore_location (window);
+        }
 
-		public override void hide () {
+        public override void hide () {
             if (window != null) {
                 window.hide ();
             }
-		}
+        }
 
         public override void set_cursor_location (int x, int y, int w, int h) {
-			placement.set_location_from_cursor (window, x, y, w, h);
+            placement.set_location_from_cursor (window, x, y, w, h);
         }
 
         public override void move_cursor (IBus.Charmap.MovementStep step,
                                           int count)
-		{
-			((Selectable)panel).move_cursor (step, count);
-		}
+        {
+            ((Selectable)panel).move_cursor (step, count);
+        }
 
         public override void select_character (unichar uc) {
             if (panel == charmap_panel)
@@ -111,27 +111,27 @@ namespace IBusCharmap {
 
         public override void activate_selected () {
             ((Selectable)panel).activate_selected ();
-		}
+        }
 
-		public override void popup_chapters () {
+        public override void popup_chapters () {
             if (panel == charmap_panel)
                 charmap_panel.popup_chapters ();
-		}
+        }
 
-		public override void start_search (string name, uint max_matches) {
+        public override void start_search (string name, uint max_matches) {
             search_panel.start_search (name, max_matches);
             window.remove (window.get_child ());
             panel = search_panel;
             window.add (panel);
             if (window.get_visible ())
                 window.show_all ();
-		}
+        }
 
-		public override void cancel_search () {
+        public override void cancel_search () {
             search_panel.cancel_search ();
             window.remove (window.get_child ());
             panel = charmap_panel;
             window.add (panel);
-		}
-	}
+        }
+    }
 }
